@@ -1,0 +1,202 @@
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { INITIAL_CUSTOMERS } from '../data/mockCustomers';
+
+const AppContext = createContext();
+
+export function AppProvider({ children }) {
+  // 1. Theme State (persisted in localStorage)
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('crm_theme');
+    if (saved) return saved;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('crm_theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  // 2. Authentication State (persisted in sessionStorage/localStorage)
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('crm_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const login = (email, password) => {
+    const mockUser = {
+      name: email.split('@')[0].replace('.', ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Administrator',
+      email: email,
+      role: 'Operations Director',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    };
+    setUser(mockUser);
+    localStorage.setItem('crm_user', JSON.stringify(mockUser));
+    return true;
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('crm_user');
+  };
+
+  // 3. User Profile State (for Settings page)
+  const [profile, setProfile] = useState(() => {
+    const saved = localStorage.getItem('crm_profile');
+    if (saved) return JSON.parse(saved);
+    return {
+      name: 'Alex Morgan',
+      email: 'alex.morgan@nexuscrm.io',
+      role: 'VP of Customer Success',
+      phone: '+1 (555) 019-2834',
+      company: 'Nexus Global Technologies',
+      bio: 'Leading customer growth, onboarding workflows, and operational efficiency.',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    };
+  });
+
+  const updateProfile = (updatedProfile) => {
+    setProfile(updatedProfile);
+    localStorage.setItem('crm_profile', JSON.stringify(updatedProfile));
+  };
+
+  // 4. Customers State (persisted in localStorage)
+  const [customers, setCustomers] = useState(() => {
+    const saved = localStorage.getItem('crm_customers');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved customers, falling back to initial', e);
+      }
+    }
+    return INITIAL_CUSTOMERS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('crm_customers', JSON.stringify(customers));
+  }, [customers]);
+
+  const addCustomer = (customerData) => {
+    const newCustomer = {
+      ...customerData,
+      id: `cust-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      avatar: customerData.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(customerData.name)}`
+    };
+    setCustomers(prev => [newCustomer, ...prev]);
+    return newCustomer;
+  };
+
+  const updateCustomer = (id, updatedData) => {
+    setCustomers(prev =>
+      prev.map(c => (c.id === id ? { ...c, ...updatedData } : c))
+    );
+  };
+
+  const deleteCustomer = (id) => {
+    setCustomers(prev => prev.filter(c => c.id !== id));
+  };
+
+  const resetCustomers = () => {
+    setCustomers(INITIAL_CUSTOMERS);
+  };
+
+  // 5. Active Screen Navigation State
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'customers' | 'settings'
+
+  // 6. Dynamically Calculated Metrics
+  const stats = useMemo(() => {
+    const total = customers.length;
+    const active = customers.filter(c => c.status === 'Active').length;
+    const inactive = customers.filter(c => c.status === 'Inactive').length;
+
+    // Determine "new this month" (current month or past 30 days)
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    const newThisMonth = customers.filter(c => {
+      const created = new Date(c.createdAt);
+      return created.getFullYear() === currentYear && created.getMonth() === currentMonth;
+    }).length;
+
+    return {
+      total,
+      active,
+      inactive,
+      newThisMonth
+    };
+  }, [customers]);
+
+  // Monthly customer acquisition chart data dynamically calculated from customer data
+  const monthlyChartData = useMemo(() => {
+    const months = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
+    const monthCounts = {
+      'May': 0,
+      'Jun': 0,
+      'Jul': 0,
+      'Aug': 0,
+      'Sep': 0,
+      'Oct': 0
+    };
+
+    customers.forEach(c => {
+      const date = new Date(c.createdAt);
+      const monthIndex = date.getMonth();
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const mName = monthNames[monthIndex];
+      if (monthCounts[mName] !== undefined) {
+        monthCounts[mName] += 1;
+      }
+    });
+
+    return months.map(month => ({
+      month,
+      customers: monthCounts[month] || 0,
+      activeRate: Math.min(100, Math.round(((monthCounts[month] || 0) * 12) + 65))
+    }));
+  }, [customers]);
+
+  return (
+    <AppContext.Provider
+      value={{
+        theme,
+        toggleTheme,
+        user,
+        login,
+        logout,
+        profile,
+        updateProfile,
+        customers,
+        addCustomer,
+        updateCustomer,
+        deleteCustomer,
+        resetCustomers,
+        activeTab,
+        setActiveTab,
+        stats,
+        monthlyChartData
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+export function useApp() {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useApp must be used within an AppProvider');
+  }
+  return context;
+}
