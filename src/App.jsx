@@ -1,42 +1,63 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from './context/AppContext';
 import LoginScreen from './components/screens/LoginScreen';
 import AppLayout from './components/layout/AppLayout';
 import DashboardScreen from './components/screens/DashboardScreen';
 import CustomerListScreen from './components/screens/CustomerListScreen';
+import CustomerFormModal from './components/screens/CustomerFormModal';
 
 export default function App() {
   const { user, activeTab, setActiveTab } = useApp();
+
+  // Modal State for Add / Edit Customer
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [customerToEdit, setCustomerToEdit] = useState(null);
+
+  const handleOpenAddCustomer = () => {
+    setCustomerToEdit(null);
+    setIsCustomerModalOpen(true);
+  };
+
+  const handleOpenEditCustomer = (customer) => {
+    setCustomerToEdit(customer);
+    setIsCustomerModalOpen(true);
+  };
+
+  const handleCloseCustomerModal = () => {
+    setIsCustomerModalOpen(false);
+    setCustomerToEdit(null);
+  };
 
   if (!user) {
     return <LoginScreen />;
   }
 
   return (
-    <AppLayout
-      onOpenAddCustomer={() => {
-        setActiveTab('customers');
-      }}
-    >
-      {activeTab === 'dashboard' && (
-        <DashboardScreen
-          onNavigateToCustomers={() => setActiveTab('customers')}
-          onOpenAddCustomer={() => setActiveTab('customers')}
-        />
-      )}
-      {activeTab === 'customers' && (
-        <CustomerListScreen
-          onAddCustomer={() => {
-            alert('Add/Edit modal is implemented in Screen 4');
-          }}
-          onEditCustomer={(customer) => {
-            alert(`Edit modal for ${customer.name} is implemented in Screen 4`);
-          }}
-        />
-      )}
-      {activeTab === 'settings' && (
-        <div className="p-4 text-center">Settings Screen will be rendered here.</div>
-      )}
-    </AppLayout>
+    <>
+      <AppLayout onOpenAddCustomer={handleOpenAddCustomer}>
+        {activeTab === 'dashboard' && (
+          <DashboardScreen
+            onNavigateToCustomers={() => setActiveTab('customers')}
+            onOpenAddCustomer={handleOpenAddCustomer}
+          />
+        )}
+        {activeTab === 'customers' && (
+          <CustomerListScreen
+            onAddCustomer={handleOpenAddCustomer}
+            onEditCustomer={handleOpenEditCustomer}
+          />
+        )}
+        {activeTab === 'settings' && (
+          <div className="p-4 text-center">Settings Screen will be rendered here.</div>
+        )}
+      </AppLayout>
+
+      {/* Reusable Add/Edit Customer Modal */}
+      <CustomerFormModal
+        isOpen={isCustomerModalOpen}
+        onClose={handleCloseCustomerModal}
+        customerToEdit={customerToEdit}
+      />
+    </>
   );
 }
