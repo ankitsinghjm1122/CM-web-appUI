@@ -5,6 +5,7 @@ import AppLayout from './components/layout/AppLayout';
 import DashboardScreen from './components/screens/DashboardScreen';
 import CustomerListScreen from './components/screens/CustomerListScreen';
 import CustomerFormModal from './components/screens/CustomerFormModal';
+import SettingsScreen from './components/screens/SettingsScreen';
 
 export default function App() {
   const { user, activeTab, setActiveTab } = useApp();
@@ -48,11 +49,11 @@ export default function App() {
           />
         )}
         {activeTab === 'settings' && (
-          <div className="p-4 text-center">Settings Screen will be rendered here.</div>
+          <SettingsScreen />
         )}
       </AppLayout>
 
-      {/* Reusable Add/Edit Customer Modal */}
+      {/* Reusable Add / Edit Customer Modal */}
       <CustomerFormModal
         isOpen={isCustomerModalOpen}
         onClose={handleCloseCustomerModal}
