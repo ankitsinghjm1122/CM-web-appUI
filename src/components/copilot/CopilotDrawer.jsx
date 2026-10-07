@@ -242,6 +242,29 @@ export default function CopilotDrawer() {
                       </div>
                     </div>
 
+                    {/* Customer Profile Card if profile was fetched */}
+                    {msg.data && msg.data.avatar && (
+                      <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm animate-fade-in">
+                        <img
+                          src={msg.data.avatar}
+                          alt={msg.data.name}
+                          className="w-10 h-10 rounded-full object-cover ring-2 ring-indigo-500/30 shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-xs text-slate-900 dark:text-white truncate">
+                            {msg.data.name}
+                          </p>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                            {msg.data.company}
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`inline-block w-1.5 h-1.5 rounded-full ${msg.data.status === 'Active' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                            <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{msg.data.status} Account</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Tool Execution Badge */}
                     {msg.badge && (
                       <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[10px] font-semibold">
