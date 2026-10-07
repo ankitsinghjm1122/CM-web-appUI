@@ -107,6 +107,53 @@ NexusCRM is a responsive, feature-complete Customer Relationship Management (CRM
 
 ---
 
+### 6. Autonomous AI Copilot Agent (`/src/components/copilot/CopilotDrawer.jsx`)
+- **Interactive Drawer:** Floating action button with pulse indicator and expandable slide-over drawer.
+- **Natural Language Tool Calling:**
+  - `add_customer`: Parses name, company, email, phone, and status from natural language and adds directly to React state.
+  - `delete_customer`: Removes customer by name or query.
+  - `filter_customers`: Auto-navigates and switches status filters (`Active` vs `Inactive`).
+  - `get_portfolio_summary`: Generates automated health briefings and churn risk analyses.
+  - `draft_email`: Generates personalized customer outreach and re-engagement emails.
+  - `toggle_theme`: Switches between Light and Dark mode.
+- **Zero Configuration:** Works 100% out of the box in the browser without external API key requirements.
+
+---
+
+## 📦 Getting Started (Local Setup)
+
+### Prerequisites
+- Node.js (version 18 or higher recommended)
+- npm or yarn
+
+### Installation Steps
+
+1. **Clone the repository:**
+   ```bash
+   git clone <YOUR_REPOSITORY_URL>
+   cd <REPOSITORY_FOLDER>
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start the local development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open in browser:**
+   Open [http://localhost:5173](http://localhost:5173) in your web browser.
+
+5. **Build for production (Optional):**
+   ```bash
+   npm run build
+   ```
+
+---
+
 ## 📁 Project Architecture
 
 ```
@@ -115,6 +162,7 @@ NexusCRM is a responsive, feature-complete Customer Relationship Management (CRM
 │   ├── assets/             # Branding assets
 │   ├── components/
 │   │   ├── common/         # Reusable ConfirmDialog, Modals, Badges
+│   │   ├── copilot/        # CopilotDrawer (Floating AI Assistant with Tool Execution)
 │   │   ├── layout/         # AppLayout (Sidebar, Mobile Drawer, Header)
 │   │   └── screens/
 │   │       ├── LoginScreen.jsx
@@ -126,6 +174,8 @@ NexusCRM is a responsive, feature-complete Customer Relationship Management (CRM
 │   │   └── AppContext.jsx  # Centralized React Context for Auth, Customers, Theme & Metrics
 │   ├── data/
 │   │   └── mockCustomers.js# 28 Seeded customer records
+│   ├── services/
+│   │   └── aiAgentService.js# AI Intent classification & tool execution engine
 │   ├── App.jsx             # Main router and screen controller
 │   ├── index.css           # Tailwind base styles and theme directives
 │   └── main.jsx            # React root mount wrapped with AppProvider
@@ -145,4 +195,5 @@ The project development was structured with incremental commits matching each sc
 3. `c25665a feat(customers): implement customer list table with search, status filters, pagination, and delete confirmation`
 4. `e3f112d feat(customers): implement add and edit customer modal form with full validation`
 5. `b3ff0e0 feat(settings): implement settings page with profile management and persistent dark mode`
-6. `docs: add comprehensive README with setup guide, architecture, and AI tool attribution`
+6. `06cc7f9 docs: add comprehensive README with setup guide, architecture, and AI tool attribution`
+7. `feat(ai-agent): implement autonomous AI Copilot drawer with tool calling and CRM actions`

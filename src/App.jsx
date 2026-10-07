@@ -6,6 +6,7 @@ import DashboardScreen from './components/screens/DashboardScreen';
 import CustomerListScreen from './components/screens/CustomerListScreen';
 import CustomerFormModal from './components/screens/CustomerFormModal';
 import SettingsScreen from './components/screens/SettingsScreen';
+import CopilotDrawer from './components/copilot/CopilotDrawer';
 
 export default function App() {
   const { user, activeTab, setActiveTab } = useApp();
@@ -59,6 +60,9 @@ export default function App() {
         onClose={handleCloseCustomerModal}
         customerToEdit={customerToEdit}
       />
+
+      {/* Autonomous AI Copilot Drawer */}
+      <CopilotDrawer />
     </>
   );
 }
