@@ -10,7 +10,8 @@ import {
   ArrowRight,
   Building2,
   Calendar,
-  Sparkles
+  Sparkles,
+  Eye
 } from 'lucide-react';
 import {
   AreaChart,
@@ -25,7 +26,7 @@ import {
 } from 'recharts';
 
 export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustomer }) {
-  const { stats, customers, monthlyChartData, theme } = useApp();
+  const { stats, customers, monthlyChartData, theme, openCustomerProfile } = useApp();
 
   // Pick 5 most recent customers for the recent activity widget
   const recentCustomers = customers.slice(0, 5);
@@ -323,15 +324,30 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
                 <tr key={cust.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                   <td className="py-3 px-3">
                     <div className="flex items-center gap-3">
-                      <img
-                        src={cust.avatar}
-                        alt={cust.name}
-                        className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => openCustomerProfile(cust)}
+                        className="relative group/avatar cursor-pointer rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-transform active:scale-95"
+                        title={`Click to open ${cust.name}'s profile`}
+                      >
+                        <img
+                          src={cust.avatar}
+                          alt={cust.name}
+                          className="w-9 h-9 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700 group-hover/avatar:ring-indigo-500 group-hover/avatar:scale-105 transition-all shadow-sm"
+                        />
+                        <span className="absolute inset-0 rounded-full bg-indigo-900/40 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition-opacity text-white text-[10px]">
+                          <Eye className="w-3 h-3" />
+                        </span>
+                      </button>
                       <div>
-                        <p className="font-semibold text-slate-900 dark:text-white">
+                        <button
+                          type="button"
+                          onClick={() => openCustomerProfile(cust)}
+                          className="font-semibold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 text-left transition-colors cursor-pointer block"
+                          title={`Click to open ${cust.name}'s profile`}
+                        >
                           {cust.name}
-                        </p>
+                        </button>
                         <p className="text-slate-400">{cust.email}</p>
                       </div>
                     </div>

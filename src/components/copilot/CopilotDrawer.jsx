@@ -247,14 +247,19 @@ export default function CopilotDrawer() {
 
                     {/* Customer Profile Card if profile was fetched */}
                     {msg.data && msg.data.avatar && (
-                      <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm animate-fade-in">
+                      <button
+                        type="button"
+                        onClick={() => context.openCustomerProfile(msg.data)}
+                        className="w-full text-left flex items-center gap-3 p-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer group/card animate-fade-in"
+                        title="Click to open full profile"
+                      >
                         <img
                           src={msg.data.avatar}
                           alt={msg.data.name}
-                          className="w-10 h-10 rounded-full object-cover ring-2 ring-indigo-500/30 shrink-0"
+                          className="w-10 h-10 rounded-full object-cover ring-2 ring-indigo-500/30 group-hover/card:scale-105 transition-transform shrink-0"
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="font-bold text-xs text-slate-900 dark:text-white truncate">
+                          <p className="font-bold text-xs text-slate-900 dark:text-white truncate group-hover/card:text-indigo-600 dark:group-hover/card:text-indigo-400">
                             {msg.data.name}
                           </p>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
@@ -265,7 +270,8 @@ export default function CopilotDrawer() {
                             <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{msg.data.status} Account</span>
                           </div>
                         </div>
-                      </div>
+                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover/card:text-indigo-600 group-hover/card:translate-x-0.5 transition-all" />
+                      </button>
                     )}
 
                     {/* Tool Execution Badge */}

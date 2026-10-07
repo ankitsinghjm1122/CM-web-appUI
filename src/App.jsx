@@ -5,6 +5,7 @@ import AppLayout from './components/layout/AppLayout';
 import DashboardScreen from './components/screens/DashboardScreen';
 import CustomerListScreen from './components/screens/CustomerListScreen';
 import CustomerFormModal from './components/screens/CustomerFormModal';
+import CustomerProfileModal from './components/screens/CustomerProfileModal';
 import SettingsScreen from './components/screens/SettingsScreen';
 import CopilotDrawer from './components/copilot/CopilotDrawer';
 
@@ -60,6 +61,9 @@ export default function App() {
         onClose={handleCloseCustomerModal}
         customerToEdit={customerToEdit}
       />
+
+      {/* Customer Full Profile Modal (opened by clicking any customer photo) */}
+      <CustomerProfileModal onEditCustomer={handleOpenEditCustomer} />
 
       {/* Autonomous AI Copilot Drawer */}
       <CopilotDrawer />

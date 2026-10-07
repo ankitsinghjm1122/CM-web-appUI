@@ -111,7 +111,18 @@ export function AppProvider({ children }) {
     setCustomers(INITIAL_CUSTOMERS);
   };
 
-  // 5. Active Screen Navigation State
+  // 5. Customer Profile Modal State (opens when clicking any customer photo)
+  const [profileCustomer, setProfileCustomer] = useState(null);
+
+  const openCustomerProfile = (customer) => {
+    setProfileCustomer(customer);
+  };
+
+  const closeCustomerProfile = () => {
+    setProfileCustomer(null);
+  };
+
+  // 6. Active Screen Navigation State
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'customers' | 'settings'
 
   // 6. Dynamically Calculated Metrics
@@ -185,7 +196,10 @@ export function AppProvider({ children }) {
         activeTab,
         setActiveTab,
         stats,
-        monthlyChartData
+        monthlyChartData,
+        profileCustomer,
+        openCustomerProfile,
+        closeCustomerProfile
       }}
     >
       {children}

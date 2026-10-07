@@ -15,12 +15,13 @@ import {
   Phone,
   CheckCircle2,
   XCircle,
-  HelpCircle
+  HelpCircle,
+  Eye
 } from 'lucide-react';
 import ConfirmDialog from '../common/ConfirmDialog';
 
 export default function CustomerListScreen({ onAddCustomer, onEditCustomer }) {
-  const { customers, deleteCustomer, resetCustomers } = useApp();
+  const { customers, deleteCustomer, resetCustomers, openCustomerProfile } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All'); // 'All' | 'Active' | 'Inactive'
@@ -222,15 +223,30 @@ export default function CustomerListScreen({ onAddCustomer, onEditCustomer }) {
                     {/* Customer Name & Avatar */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={cust.avatar}
-                          alt={cust.name}
-                          className="w-9 h-9 rounded-full object-cover ring-2 ring-slate-100 dark:ring-slate-800 shrink-0"
-                        />
+                        <button
+                          type="button"
+                          onClick={() => openCustomerProfile(cust)}
+                          className="relative group/avatar cursor-pointer rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-transform active:scale-95"
+                          title={`Click to open ${cust.name}'s profile`}
+                        >
+                          <img
+                            src={cust.avatar}
+                            alt={cust.name}
+                            className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-100 dark:ring-slate-800 group-hover/avatar:ring-indigo-500 group-hover/avatar:scale-105 transition-all shadow-sm"
+                          />
+                          <span className="absolute inset-0 rounded-full bg-indigo-900/40 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition-opacity text-white text-[10px]">
+                            <Eye className="w-3.5 h-3.5" />
+                          </span>
+                        </button>
                         <div className="min-w-0">
-                          <p className="font-bold text-slate-900 dark:text-white truncate">
+                          <button
+                            type="button"
+                            onClick={() => openCustomerProfile(cust)}
+                            className="font-bold text-slate-900 dark:text-white truncate hover:text-indigo-600 dark:hover:text-indigo-400 text-left transition-colors cursor-pointer block"
+                            title={`Click to open ${cust.name}'s profile`}
+                          >
                             {cust.name}
-                          </p>
+                          </button>
                           <p className="text-[11px] text-slate-500 truncate sm:hidden">
                             {cust.email}
                           </p>
