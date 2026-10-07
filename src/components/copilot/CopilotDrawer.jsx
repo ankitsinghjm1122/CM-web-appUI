@@ -28,14 +28,15 @@ export default function CopilotDrawer() {
       id: 'msg-welcome',
       sender: 'agent',
       text: [
-        "Hi! I am your Nexus AI Copilot. Here is what I can do for you in real-time:",
-        "1. Add new customer records to the directory",
-        "2. Filter customers by Active or Inactive status",
-        "3. Generate executive portfolio health briefings",
-        "4. Draft personalized outreach and re-engagement emails",
-        "5. Control workspace appearance and navigation",
+        "Hi! I am your Nexus AI Copilot. I can answer all questions about this CRM and execute actions for you in real-time:",
+        "1. Answer any question about CRM concepts (churn, retention, LTV, CAC, sales pipeline)",
+        "2. Look up any customer, company, contact details, or account status",
+        "3. Update customer details (change status, phone, email, company) and save them live",
+        "4. Add new customer records or delete existing profiles",
+        "5. Explain dashboard metrics, acquisition charts, and business health ratios",
+        "6. Draft personalized outreach and re-engagement emails",
         "",
-        "What would you like to execute?"
+        "What question or task can I help you with?"
       ].join('\n'),
       toolCalled: null,
       badge: null,
@@ -99,6 +100,7 @@ export default function CopilotDrawer() {
   };
 
   const quickPrompts = [
+    { label: "❓ What is CRM?", prompt: "What is CRM and why do we use it?" },
     { label: "✏️ Mark Eleanor Inactive", prompt: "Change Eleanor Vance status to Inactive" },
     { label: "📊 Portfolio stats", prompt: "Summarize portfolio health and customer metrics" },
     { label: "👤 Who is Sophia Chen?", prompt: "Who is Sophia Chen?" },
