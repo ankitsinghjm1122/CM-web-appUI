@@ -99,11 +99,11 @@ export default function CopilotDrawer() {
   };
 
   const quickPrompts = [
-    { label: "📊 Summarize portfolio", prompt: "Summarize portfolio health and customer metrics" },
-    { label: "➕ Add client at Netflix", prompt: "Add customer Sarah Jenkins at Netflix, active, sarah@netflix.com, +1 555-0199" },
-    { label: "⚠️ Show inactive", prompt: "Show inactive customers in the directory" },
-    { label: "✉️ Draft re-engagement", prompt: "Draft a re-engagement email for David Sterling" },
-    { label: "🌙 Toggle theme", prompt: "Switch theme mode" }
+    { label: "📊 Portfolio stats", prompt: "Summarize portfolio health and customer metrics" },
+    { label: "👤 Who is Sophia Chen?", prompt: "Who is Sophia Chen?" },
+    { label: "⚠️ List inactive clients", prompt: "List inactive customers" },
+    { label: "➕ Add Sarah at Netflix", prompt: "Add customer Sarah Jenkins at Netflix, active, sarah@netflix.com, +1 555-0199" },
+    { label: "✉️ Draft email for David", prompt: "Draft a re-engagement email for David Sterling" }
   ];
 
   return (

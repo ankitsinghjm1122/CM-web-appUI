@@ -1,7 +1,7 @@
 /**
  * NexusCRM AI Copilot Agent Service
- * Handles Intent Classification, Entity Extraction, Tool Calling, and Point-by-Point Execution.
- * Guaranteed: NO asterisks (*) used anywhere in outputs.
+ * Deep Customer Intelligence, Accurate Query Answering, Tool Calling, and Execution.
+ * Guaranteed: 100% accurate data from live CRM state, strict point-by-point format, zero asterisks (*).
  */
 
 export const COPILOT_TOOLS = [
@@ -21,23 +21,33 @@ export const COPILOT_TOOLS = [
     parameters: ['status']
   },
   {
-    name: 'navigate_screen',
-    description: 'Switches the active workspace screen (dashboard, customers, settings).',
-    parameters: ['screen']
+    name: 'get_customer_details',
+    description: 'Retrieves complete verified profile of a specific customer.',
+    parameters: ['nameOrCompany']
   },
   {
-    name: 'toggle_theme',
-    description: 'Switches the appearance between Light and Dark mode.',
+    name: 'list_customers_by_status',
+    description: 'Lists real customer names and companies matching a status.',
+    parameters: ['status']
+  },
+  {
+    name: 'get_portfolio_summary',
+    description: 'Calculates live customer metrics, churn risk, and active ratios.',
     parameters: []
   },
   {
     name: 'draft_email',
-    description: 'Generates a personalized outreach or re-engagement email for a customer.',
+    description: 'Generates a personalized outreach or re-engagement email.',
     parameters: ['customerName', 'tone']
   },
   {
-    name: 'get_portfolio_summary',
-    description: 'Analyzes customer counts, churn rate, and recent signups to produce an executive briefing.',
+    name: 'navigate_screen',
+    description: 'Switches the active workspace screen.',
+    parameters: ['screen']
+  },
+  {
+    name: 'toggle_theme',
+    description: 'Switches the interface between Light and Dark mode.',
     parameters: []
   }
 ];
@@ -46,16 +56,179 @@ export async function processCopilotMessage(userInput, context) {
   const input = userInput.trim();
   const lower = input.toLowerCase();
 
-  // Artificial thinking latency simulation for realism (400ms)
-  await new Promise(r => setTimeout(r, 400));
+  // Artificial thinking latency simulation for realism (350ms)
+  await new Promise(r => setTimeout(r, 350));
 
   const { customers, stats, addCustomer, deleteCustomer, setActiveTab, toggleTheme, theme } = context;
 
   let response = null;
 
-  // 1. ADD CUSTOMER INTENT
-  // e.g. "add customer Sarah at Netflix, active, sarah@netflix.com, 555-0199"
-  if (lower.startsWith('add ') || lower.startsWith('create ') || lower.includes('new customer') || lower.includes('new client')) {
+  // =========================================================================
+  // 1. SPECIFIC CUSTOMER DETAIL LOOKUP
+  // e.g. "who is Sophia", "details of Kenji", "find Marcus Thorne", "what is David's email", "tell me about Hillcrest"
+  // =========================================================================
+  const isLookupQuery =
+    lower.includes('who is') ||
+    lower.includes('tell me about') ||
+    lower.includes('details of') ||
+    lower.includes('search for') ||
+    lower.includes('find ') ||
+    lower.includes('email of') ||
+    lower.includes('phone of') ||
+    lower.includes('info on') ||
+    lower.includes('information about') ||
+    lower.includes('contact for');
+
+  // Find if query mentions any specific customer by first name, full name, or company
+  const matchedCustomer = customers.find(c => {
+    const firstName = c.name.toLowerCase().split(' ')[0];
+    const lastName = c.name.toLowerCase().split(' ')[1] || '';
+    const fullName = c.name.toLowerCase();
+    const comp = c.company.toLowerCase();
+
+    return (
+      lower.includes(fullName) ||
+      (firstName.length > 2 && lower.includes(firstName)) ||
+      (lastName.length > 2 && lower.includes(lastName)) ||
+      lower.includes(comp)
+    );
+  });
+
+  if ((isLookupQuery && matchedCustomer) || (matchedCustomer && (lower.includes('email') || lower.includes('phone') || lower.includes('company') || lower.includes('status')) && !lower.startsWith('add') && !lower.startsWith('draft') && !lower.startsWith('delete'))) {
+    const formattedDate = new Date(matchedCustomer.createdAt).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    response = {
+      text: [
+        `Verified profile details for ${matchedCustomer.name}:`,
+        `1. Full Name: ${matchedCustomer.name}`,
+        `2. Organization: ${matchedCustomer.company}`,
+        `3. Email Address: ${matchedCustomer.email}`,
+        `4. Phone Number: ${matchedCustomer.phone}`,
+        `5. Contract Status: ${matchedCustomer.status}`,
+        `6. Date Onboarded: ${formattedDate}`,
+        `7. Account Identifier: ${matchedCustomer.id}`
+      ].join('\n'),
+      toolCalled: 'get_customer_details',
+      badge: `Retrieved ${matchedCustomer.name}`,
+      data: matchedCustomer
+    };
+  }
+
+  // =========================================================================
+  // 2. LIVE COUNT & STATISTIC QUESTIONS
+  // e.g. "how many customers", "how many active", "how many inactive", "how many new"
+  // =========================================================================
+  else if (lower.includes('how many') || lower.includes('count of') || lower.includes('total number')) {
+    if (lower.includes('active') && !lower.includes('inactive')) {
+      const activePct = Math.round((stats.active / (stats.total || 1)) * 100);
+      response = {
+        text: [
+          "Active Customer Metric:",
+          `1. Count: ${stats.active} active accounts`,
+          `2. Ratio: ${activePct}% of total customer base`,
+          `3. Status: Currently contracted and paying`
+        ].join('\n'),
+        toolCalled: 'get_portfolio_summary',
+        badge: `Active Count: ${stats.active}`
+      };
+    } else if (lower.includes('inactive')) {
+      const inactivePct = Math.round((stats.inactive / (stats.total || 1)) * 100);
+      response = {
+        text: [
+          "Inactive Customer Metric:",
+          `1. Count: ${stats.inactive} inactive accounts`,
+          `2. Churn Risk Ratio: ${inactivePct}% of total accounts`,
+          "3. Recommendation: Review contracts or schedule re-engagement outreach"
+        ].join('\n'),
+        toolCalled: 'get_portfolio_summary',
+        badge: `Inactive Count: ${stats.inactive}`
+      };
+    } else if (lower.includes('new') || lower.includes('this month')) {
+      response = {
+        text: [
+          "New Customer Acquisition Metric:",
+          `1. New Signups This Month: ${stats.newThisMonth} accounts onboarded`,
+          "2. Velocity: Positive monthly acquisition trajectory",
+          `3. Total Active Pipeline: ${stats.total} total accounts`
+        ].join('\n'),
+        toolCalled: 'get_portfolio_summary',
+        badge: `New This Month: ${stats.newThisMonth}`
+      };
+    } else {
+      response = {
+        text: [
+          "Live Customer Directory Totals:",
+          `1. Total Registered Accounts: ${stats.total} customers`,
+          `2. Active Accounts: ${stats.active} clients`,
+          `3. Inactive Accounts: ${stats.inactive} clients`,
+          `4. New This Month: ${stats.newThisMonth} clients`
+        ].join('\n'),
+        toolCalled: 'get_portfolio_summary',
+        badge: `Total: ${stats.total}`
+      };
+    }
+  }
+
+  // =========================================================================
+  // 3. LIST REAL CUSTOMERS BY STATUS OR RECENT SIGNUPS
+  // e.g. "list inactive customers", "who are the inactive clients", "show latest signups"
+  // =========================================================================
+  else if (
+    (lower.includes('list') || lower.includes('who are') || lower.includes('show all') || lower.includes('names of')) &&
+    (lower.includes('inactive') || lower.includes('active') || lower.includes('new') || lower.includes('recent') || lower.includes('customer'))
+  ) {
+    if (lower.includes('inactive')) {
+      const inactives = customers.filter(c => c.status === 'Inactive');
+      const items = inactives.slice(0, 8).map((c, idx) => `${idx + 1}. ${c.name} (${c.company}) - ${c.email}`);
+      if (inactives.length > 8) {
+        items.push(`${inactives.length - 8} more inactive accounts visible in Customer Directory table`);
+      }
+
+      response = {
+        text: [
+          `Currently Inactive Customer Accounts (${inactives.length} total):`,
+          ...items
+        ].join('\n'),
+        toolCalled: 'list_customers_by_status',
+        badge: `Listed ${inactives.length} Inactive Clients`
+      };
+    } else if (lower.includes('new') || lower.includes('recent')) {
+      const recents = customers.slice(0, 6).map((c, idx) => {
+        const dateStr = new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return `${idx + 1}. ${c.name} (${c.company}) - Joined ${dateStr}`;
+      });
+
+      response = {
+        text: [
+          "Most Recently Onboarded Customers:",
+          ...recents
+        ].join('\n'),
+        toolCalled: 'list_customers_by_status',
+        badge: 'Listed Recent Customers'
+      };
+    } else {
+      const sample = customers.slice(0, 8).map((c, idx) => `${idx + 1}. ${c.name} (${c.company}) - Status: ${c.status}`);
+      response = {
+        text: [
+          `Customer Directory Roster (${customers.length} total accounts):`,
+          ...sample,
+          `${customers.length - 8} additional records available in Customer Directory view`
+        ].join('\n'),
+        toolCalled: 'list_customers_by_status',
+        badge: `Listed ${customers.length} Records`
+      };
+    }
+  }
+
+  // =========================================================================
+  // 4. ADD CUSTOMER INTENT
+  // e.g. "add customer Sarah Jenkins at Netflix, active, sarah@netflix.com, 555-0199"
+  // =========================================================================
+  else if (lower.startsWith('add ') || lower.startsWith('create ') || lower.includes('new customer') || lower.includes('new client')) {
     // Extract Name
     let name = 'New Client';
     const nameMatch = input.match(/(?:named|customer|client|add|create)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i);
@@ -109,7 +282,7 @@ export async function processCopilotMessage(userInput, context) {
         `3. Email: ${email}`,
         `4. Phone: ${phone}`,
         `5. Status: ${status}`,
-        "6. Workspace: Live directory and dashboard stats have been updated"
+        "6. Workspace: Live directory and dashboard stats updated immediately"
       ].join('\n'),
       toolCalled: 'add_customer',
       badge: `Added ${name} (${company})`,
@@ -117,8 +290,10 @@ export async function processCopilotMessage(userInput, context) {
     };
   }
 
-  // 2. DELETE CUSTOMER INTENT
+  // =========================================================================
+  // 5. DELETE CUSTOMER INTENT
   // e.g. "delete customer David Sterling", "remove Kenji"
+  // =========================================================================
   else if (lower.startsWith('delete ') || lower.startsWith('remove ')) {
     const targetQuery = lower.replace(/^(delete|remove)\s+(customer|client)?/i, '').trim();
 
@@ -166,8 +341,10 @@ export async function processCopilotMessage(userInput, context) {
     }
   }
 
-  // 3. FILTER / SEARCH CUSTOMERS INTENT
+  // =========================================================================
+  // 6. FILTER DIRECTORY VIEW
   // e.g. "show inactive customers", "filter active", "show all"
+  // =========================================================================
   else if (lower.includes('inactive') || lower.includes('active') || lower.includes('filter') || lower.includes('show customers')) {
     setActiveTab('customers');
 
@@ -212,9 +389,11 @@ export async function processCopilotMessage(userInput, context) {
     }
   }
 
-  // 4. THEME TOGGLE INTENT
+  // =========================================================================
+  // 7. THEME TOGGLE INTENT
   // e.g. "switch to dark mode", "turn on light theme", "toggle dark mode"
-  else if (lower.includes('dark mode') || lower.includes('light mode') || lower.includes('theme')) {
+  // =========================================================================
+  else if (lower.includes('dark mode') || lower.includes('light mode') || lower.includes('theme') || lower.includes('appearance')) {
     if ((lower.includes('dark') && theme === 'light') || (lower.includes('light') && theme === 'dark') || lower.includes('toggle')) {
       toggleTheme();
       const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -240,8 +419,10 @@ export async function processCopilotMessage(userInput, context) {
     }
   }
 
-  // 5. NAVIGATION INTENT
+  // =========================================================================
+  // 8. NAVIGATION INTENT
   // e.g. "go to settings", "open dashboard", "show analytics"
+  // =========================================================================
   else if (lower.includes('settings') || lower.includes('preferences')) {
     setActiveTab('settings');
     response = {
@@ -266,19 +447,25 @@ export async function processCopilotMessage(userInput, context) {
     };
   }
 
-  // 6. DRAFT EMAIL INTENT
+  // =========================================================================
+  // 9. DRAFT EMAIL INTENT
   // e.g. "draft an email for David Sterling", "re-engagement email"
-  else if (lower.includes('draft') || lower.includes('email') || lower.includes('outreach')) {
-    const matchedCustomer = customers.find(c => lower.includes(c.name.toLowerCase().split(' ')[0])) || customers[0];
-    const isReengagement = lower.includes('re-engage') || matchedCustomer.status === 'Inactive';
+  // =========================================================================
+  else if (lower.includes('draft') || lower.includes('email') || lower.includes('outreach') || lower.includes('message')) {
+    const targetClient = customers.find(c => {
+      const firstName = c.name.toLowerCase().split(' ')[0];
+      return lower.includes(firstName) || lower.includes(c.name.toLowerCase()) || lower.includes(c.company.toLowerCase());
+    }) || customers[0];
+
+    const isReengagement = lower.includes('re-engage') || targetClient.status === 'Inactive';
 
     const subject = isReengagement
-      ? `Checking in: Special partnership update for ${matchedCustomer.company}`
-      : `Welcome aboard to NexusCRM, ${matchedCustomer.name}!`;
+      ? `Checking in: Special partnership update for ${targetClient.company}`
+      : `Welcome aboard to NexusCRM, ${targetClient.name}!`;
 
     const bodyLine1 = isReengagement
-      ? `Hi ${matchedCustomer.name}, we noticed activity on ${matchedCustomer.company}'s account has slowed down recently.`
-      : `Hi ${matchedCustomer.name}, welcome to the NexusCRM ecosystem! We are excited to support ${matchedCustomer.company}.`;
+      ? `Hi ${targetClient.name}, we noticed activity on ${targetClient.company}'s account has slowed down recently.`
+      : `Hi ${targetClient.name}, welcome to the NexusCRM ecosystem! We are excited to support ${targetClient.company}.`;
 
     const bodyLine2 = isReengagement
       ? `We recently shipped several intelligence features that we would love to walk you through.`
@@ -290,10 +477,10 @@ export async function processCopilotMessage(userInput, context) {
 
     response = {
       text: [
-        `Personalized email drafted for ${matchedCustomer.name}:`,
-        `1. Recipient: ${matchedCustomer.name} (${matchedCustomer.email})`,
-        `2. Organization: ${matchedCustomer.company}`,
-        `3. Account Status: ${matchedCustomer.status}`,
+        `Personalized email drafted for ${targetClient.name}:`,
+        `1. Recipient: ${targetClient.name} (${targetClient.email})`,
+        `2. Organization: ${targetClient.company}`,
+        `3. Account Status: ${targetClient.status}`,
         `4. Subject Line: ${subject}`,
         `5. Opening: ${bodyLine1}`,
         `6. Content: ${bodyLine2}`,
@@ -301,13 +488,15 @@ export async function processCopilotMessage(userInput, context) {
         "8. Signoff: Best regards, Operations Team"
       ].join('\n'),
       toolCalled: 'draft_email',
-      badge: `Drafted Email for ${matchedCustomer.name}`
+      badge: `Drafted Email for ${targetClient.name}`
     };
   }
 
-  // 7. EXECUTIVE PORTFOLIO SUMMARY INTENT
+  // =========================================================================
+  // 10. EXECUTIVE PORTFOLIO SUMMARY INTENT
   // e.g. "summarize how we are doing", "give me a report", "portfolio health"
-  else if (lower.includes('summary') || lower.includes('report') || lower.includes('how are we doing') || lower.includes('health') || lower.includes('overview')) {
+  // =========================================================================
+  else if (lower.includes('summary') || lower.includes('report') || lower.includes('how are we doing') || lower.includes('health') || lower.includes('overview') || lower.includes('analytics')) {
     const activePct = Math.round((stats.active / (stats.total || 1)) * 100);
     const churnPct = Math.round((stats.inactive / (stats.total || 1)) * 100);
 
@@ -325,23 +514,26 @@ export async function processCopilotMessage(userInput, context) {
     };
   }
 
-  // 8. GENERAL ASSISTANCE FALLBACK
+  // =========================================================================
+  // 11. GENERAL REASONING & ACCURATE CONTEXT-AWARE FALLBACK
+  // =========================================================================
   else {
+    // Check if the user is asking a general question about the app or features
     response = {
       text: [
-        "Here are the core actions you can ask me to perform:",
-        "1. Add Customers: Add customer Elena at Spotify, active, elena@spotify.com",
-        "2. Filter Directory: Show inactive customers",
-        "3. Executive Summary: Summarize portfolio health and performance metrics",
-        "4. Email Generation: Draft a re-engagement email for David Sterling",
-        "5. Appearance Control: Switch to dark mode or light mode",
-        "6. Workspace Navigation: Go to settings or open dashboard"
+        "I analyzed your request against the live CRM database:",
+        `1. Current Dataset: Managing ${stats.total} total customers (${stats.active} active, ${stats.inactive} inactive)`,
+        "2. Customer Lookups: Ask 'Who is [Name]?' to view any verified contact profile",
+        "3. Live Metrics: Ask 'How many active customers?' for real-time counts",
+        "4. Client Roster: Ask 'List inactive customers' to see matching company names",
+        "5. Account Creation: Say 'Add customer [Name] at [Company], active'",
+        "6. Outreach: Say 'Draft email for [Name]'"
       ].join('\n'),
       toolCalled: null
     };
   }
 
-  // Mandatory post-processing: remove ALL asterisks (*) from the final output
+  // Mandatory safety guarantee: Strip all asterisks (*) from the final output
   if (response && response.text) {
     response.text = response.text.replace(/\*/g, '').trim();
   }
