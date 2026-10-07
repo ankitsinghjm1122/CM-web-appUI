@@ -27,7 +27,16 @@ export default function CopilotDrawer() {
     {
       id: 'msg-welcome',
       sender: 'agent',
-      text: "👋 Hi! I'm **Nexus AI Copilot**. I can add clients, filter records, summarize portfolio health, or draft emails for you. What would you like to do?",
+      text: [
+        "Hi! I am your Nexus AI Copilot. Here is what I can do for you in real-time:",
+        "1. Add new customer records to the directory",
+        "2. Filter customers by Active or Inactive status",
+        "3. Generate executive portfolio health briefings",
+        "4. Draft personalized outreach and re-engagement emails",
+        "5. Control workspace appearance and navigation",
+        "",
+        "What would you like to execute?"
+      ].join('\n'),
       toolCalled: null,
       badge: null,
       timestamp: new Date()
@@ -196,22 +205,39 @@ export default function CopilotDrawer() {
                           : 'bg-slate-100 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 rounded-tl-none border border-slate-200/60 dark:border-slate-700/60'
                       }`}
                     >
-                      {/* Markdown-style formatting */}
-                      <div className="whitespace-pre-wrap font-sans text-xs sm:text-xs">
-                        {msg.text.split('\n').map((line, idx) => {
-                          // Header line
-                          if (line.startsWith('### ')) {
-                            return <p key={idx} className="font-bold text-sm text-indigo-500 dark:text-indigo-400 my-1">{line.replace('### ', '')}</p>;
+                      {/* Point-by-point clean formatting (zero asterisks) */}
+                      <div className="font-sans text-xs sm:text-xs space-y-1">
+                        {msg.text.split('\n').map((rawLine, idx) => {
+                          const line = rawLine.replace(/\*/g, '').trim();
+                          if (!line) return <div key={idx} className="h-1" />;
+
+                          // Numbered point: e.g. "1. Name: Sarah"
+                          const isNumberedPoint = /^\d+\.\s/.test(line);
+                          if (isNumberedPoint) {
+                            const [pointNum, ...rest] = line.split('. ');
+                            const pointContent = rest.join('. ');
+                            return (
+                              <div key={idx} className="flex items-start gap-2 py-0.5">
+                                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-500/15 dark:bg-indigo-400/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold shrink-0 mt-0.5">
+                                  {pointNum}
+                                </span>
+                                <span className="flex-1 text-slate-800 dark:text-slate-200 leading-snug">
+                                  {pointContent}
+                                </span>
+                              </div>
+                            );
                           }
-                          // Bullet item
-                          if (line.startsWith('- ')) {
-                            return <p key={idx} className="ml-2 my-0.5">• {line.replace('- ', '')}</p>;
-                          }
-                          // Code block preview
-                          if (line.startsWith('```')) {
-                            return null;
-                          }
-                          return <p key={idx} className="my-0.5">{line}</p>;
+
+                          // Section title or standalone text
+                          const isHeader = line.endsWith(':');
+                          return (
+                            <p
+                              key={idx}
+                              className={isHeader ? "font-bold text-slate-900 dark:text-white pt-1 text-xs" : "text-slate-800 dark:text-slate-200"}
+                            >
+                              {line}
+                            </p>
+                          );
                         })}
                       </div>
                     </div>

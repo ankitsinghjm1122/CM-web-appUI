@@ -1,6 +1,7 @@
 /**
  * NexusCRM AI Copilot Agent Service
- * Handles Intent Classification, Entity Extraction, Tool Calling, and Execution.
+ * Handles Intent Classification, Entity Extraction, Tool Calling, and Point-by-Point Execution.
+ * Guaranteed: NO asterisks (*) used anywhere in outputs.
  */
 
 export const COPILOT_TOOLS = [
@@ -50,9 +51,10 @@ export async function processCopilotMessage(userInput, context) {
 
   const { customers, stats, addCustomer, deleteCustomer, setActiveTab, toggleTheme, theme } = context;
 
+  let response = null;
+
   // 1. ADD CUSTOMER INTENT
   // e.g. "add customer Sarah at Netflix, active, sarah@netflix.com, 555-0199"
-  // e.g. "create client Bob Vance from Vance Refrigeration"
   if (lower.startsWith('add ') || lower.startsWith('create ') || lower.includes('new customer') || lower.includes('new client')) {
     // Extract Name
     let name = 'New Client';
@@ -99,8 +101,16 @@ export async function processCopilotMessage(userInput, context) {
     // Auto-navigate to customers so user immediately sees the result
     setActiveTab('customers');
 
-    return {
-      text: `Done! I've executed the tool \`add_customer\` and added **${name}** (${company}) as an **${status}** account.`,
+    response = {
+      text: [
+        "Customer creation completed successfully:",
+        `1. Name: ${name}`,
+        `2. Company: ${company}`,
+        `3. Email: ${email}`,
+        `4. Phone: ${phone}`,
+        `5. Status: ${status}`,
+        "6. Workspace: Live directory and dashboard stats have been updated"
+      ].join('\n'),
       toolCalled: 'add_customer',
       badge: `Added ${name} (${company})`,
       data: newCustomer
@@ -109,102 +119,148 @@ export async function processCopilotMessage(userInput, context) {
 
   // 2. DELETE CUSTOMER INTENT
   // e.g. "delete customer David Sterling", "remove Kenji"
-  if (lower.startsWith('delete ') || lower.startsWith('remove ')) {
+  else if (lower.startsWith('delete ') || lower.startsWith('remove ')) {
     const targetQuery = lower.replace(/^(delete|remove)\s+(customer|client)?/i, '').trim();
 
     if (!targetQuery) {
-      return {
-        text: "Please specify which customer you'd like to delete (e.g., *'Delete David Sterling'*).",
+      response = {
+        text: [
+          "Action requires target details:",
+          "1. Please specify the name or company of the customer to remove",
+          "2. Example format: Delete David Sterling"
+        ].join('\n'),
         toolCalled: null
-      };
-    }
-
-    const matched = customers.find(c =>
-      c.name.toLowerCase().includes(targetQuery) ||
-      c.email.toLowerCase().includes(targetQuery) ||
-      c.company.toLowerCase().includes(targetQuery) ||
-      c.id.toLowerCase() === targetQuery
-    );
-
-    if (matched) {
-      deleteCustomer(matched.id);
-      return {
-        text: `Executed \`delete_customer\`. Successfully removed **${matched.name}** (${matched.company}) from the directory.`,
-        toolCalled: 'delete_customer',
-        badge: `Deleted ${matched.name}`,
-        data: matched
       };
     } else {
-      return {
-        text: `I couldn't find any customer matching **"${targetQuery}"**. Double check the name in the directory.`,
-        toolCalled: null
-      };
+      const matched = customers.find(c =>
+        c.name.toLowerCase().includes(targetQuery) ||
+        c.email.toLowerCase().includes(targetQuery) ||
+        c.company.toLowerCase().includes(targetQuery) ||
+        c.id.toLowerCase() === targetQuery
+      );
+
+      if (matched) {
+        deleteCustomer(matched.id);
+        response = {
+          text: [
+            "Customer deletion executed successfully:",
+            `1. Removed Account: ${matched.name}`,
+            `2. Associated Company: ${matched.company}`,
+            `3. Previous Status: ${matched.status}`,
+            "4. Impact: Directory and dashboard metrics recalculated immediately"
+          ].join('\n'),
+          toolCalled: 'delete_customer',
+          badge: `Deleted ${matched.name}`,
+          data: matched
+        };
+      } else {
+        response = {
+          text: [
+            "Customer lookup resulted in no match:",
+            `1. Searched Term: "${targetQuery}"`,
+            "2. Recommendation: Verify the name spelling in the Customer Directory tab"
+          ].join('\n'),
+          toolCalled: null
+        };
+      }
     }
   }
 
   // 3. FILTER / SEARCH CUSTOMERS INTENT
   // e.g. "show inactive customers", "filter active", "show all"
-  if (lower.includes('inactive') || lower.includes('active') || lower.includes('filter') || lower.includes('show customers')) {
+  else if (lower.includes('inactive') || lower.includes('active') || lower.includes('filter') || lower.includes('show customers')) {
     setActiveTab('customers');
 
     if (lower.includes('inactive')) {
-      return {
-        text: `Navigated to **Customer Directory** and filtered for **Inactive** accounts (${stats.inactive} accounts found).`,
+      response = {
+        text: [
+          "Directory filter updated:",
+          "1. Target Screen: Customer Directory",
+          "2. Active Filter: Inactive accounts",
+          `3. Records Found: ${stats.inactive} paused accounts`,
+          "4. Objective: Ready for re-engagement or churn review"
+        ].join('\n'),
         toolCalled: 'filter_customers',
         badge: 'Filter: Inactive',
         filterStatus: 'Inactive'
       };
-    }
-
-    if (lower.includes('active')) {
-      return {
-        text: `Navigated to **Customer Directory** and filtered for **Active** paying accounts (${stats.active} accounts found).`,
+    } else if (lower.includes('active')) {
+      response = {
+        text: [
+          "Directory filter updated:",
+          "1. Target Screen: Customer Directory",
+          "2. Active Filter: Active accounts",
+          `3. Records Found: ${stats.active} contracted accounts`,
+          "4. Health: Generating ongoing recurring engagement"
+        ].join('\n'),
         toolCalled: 'filter_customers',
         badge: 'Filter: Active',
         filterStatus: 'Active'
       };
+    } else {
+      response = {
+        text: [
+          "Directory view updated:",
+          "1. Target Screen: Customer Directory",
+          "2. Filter: All accounts",
+          `3. Total Records: ${stats.total} customers loaded`,
+          "4. Pagination: 10 records per page"
+        ].join('\n'),
+        toolCalled: 'navigate_screen',
+        badge: 'View: Customer Directory'
+      };
     }
-
-    return {
-      text: `Navigated to **Customer Directory** displaying all ${stats.total} accounts.`,
-      toolCalled: 'navigate_screen',
-      badge: 'View: Customer Directory'
-    };
   }
 
   // 4. THEME TOGGLE INTENT
   // e.g. "switch to dark mode", "turn on light theme", "toggle dark mode"
-  if (lower.includes('dark mode') || lower.includes('light mode') || lower.includes('theme')) {
+  else if (lower.includes('dark mode') || lower.includes('light mode') || lower.includes('theme')) {
     if ((lower.includes('dark') && theme === 'light') || (lower.includes('light') && theme === 'dark') || lower.includes('toggle')) {
       toggleTheme();
       const newTheme = theme === 'dark' ? 'light' : 'dark';
-      return {
-        text: `Executed \`toggle_theme\`. Interface appearance switched to **${newTheme.toUpperCase()} mode**.`,
+      response = {
+        text: [
+          "Interface theme updated successfully:",
+          `1. New Appearance: ${newTheme.toUpperCase()} mode`,
+          "2. Scope: Applied across all 5 workspace screens",
+          "3. Storage: Persisted in local browser storage"
+        ].join('\n'),
         toolCalled: 'toggle_theme',
         badge: `Switched to ${newTheme} mode`
       };
+    } else {
+      response = {
+        text: [
+          "Appearance state checked:",
+          `1. Current Mode: ${theme.toUpperCase()} mode is already active`,
+          "2. Action: No changes required"
+        ].join('\n'),
+        toolCalled: null
+      };
     }
-    return {
-      text: `The interface is already in **${theme.toUpperCase()} mode**.`,
-      toolCalled: null
-    };
   }
 
   // 5. NAVIGATION INTENT
   // e.g. "go to settings", "open dashboard", "show analytics"
-  if (lower.includes('settings') || lower.includes('preferences')) {
+  else if (lower.includes('settings') || lower.includes('preferences')) {
     setActiveTab('settings');
-    return {
-      text: "Navigated to **Settings & Profile** screen.",
+    response = {
+      text: [
+        "Navigation completed:",
+        "1. Active View: Settings & Profile",
+        "2. Features Available: Theme selector, Admin Profile editing, Seed Data reset"
+      ].join('\n'),
       toolCalled: 'navigate_screen',
       badge: 'Navigated to Settings'
     };
-  }
-
-  if (lower.includes('dashboard') || lower.includes('analytics') || lower.includes('home')) {
+  } else if (lower.includes('dashboard') || lower.includes('analytics') || lower.includes('home')) {
     setActiveTab('dashboard');
-    return {
-      text: "Navigated to **Executive Dashboard** overview.",
+    response = {
+      text: [
+        "Navigation completed:",
+        "1. Active View: Executive Dashboard",
+        "2. Available Metrics: 4 KPI summary cards, Growth Area chart, Portfolio health"
+      ].join('\n'),
       toolCalled: 'navigate_screen',
       badge: 'Navigated to Dashboard'
     };
@@ -212,7 +268,7 @@ export async function processCopilotMessage(userInput, context) {
 
   // 6. DRAFT EMAIL INTENT
   // e.g. "draft an email for David Sterling", "re-engagement email"
-  if (lower.includes('draft') || lower.includes('email') || lower.includes('outreach')) {
+  else if (lower.includes('draft') || lower.includes('email') || lower.includes('outreach')) {
     const matchedCustomer = customers.find(c => lower.includes(c.name.toLowerCase().split(' ')[0])) || customers[0];
     const isReengagement = lower.includes('re-engage') || matchedCustomer.status === 'Inactive';
 
@@ -220,12 +276,30 @@ export async function processCopilotMessage(userInput, context) {
       ? `Checking in: Special partnership update for ${matchedCustomer.company}`
       : `Welcome aboard to NexusCRM, ${matchedCustomer.name}!`;
 
-    const body = isReengagement
-      ? `Hi ${matchedCustomer.name},\n\nWe noticed activity on ${matchedCustomer.company}'s account has slowed down recently. We recently shipped several intelligence features that we'd love to walk you through.\n\nDo you have 15 minutes this Thursday for a quick touchpoint?\n\nBest regards,\nOperations Team`
-      : `Hi ${matchedCustomer.name},\n\nWelcome to the NexusCRM ecosystem! We are excited to support ${matchedCustomer.company} in streamlining your operational workflows.\n\nLet us know if you need any assistance getting started.\n\nWarm regards,\nAlex Morgan`;
+    const bodyLine1 = isReengagement
+      ? `Hi ${matchedCustomer.name}, we noticed activity on ${matchedCustomer.company}'s account has slowed down recently.`
+      : `Hi ${matchedCustomer.name}, welcome to the NexusCRM ecosystem! We are excited to support ${matchedCustomer.company}.`;
 
-    return {
-      text: `Drafted an outreach email for **${matchedCustomer.name}** (${matchedCustomer.company}):\n\n**Subject:** ${subject}\n\n\`\`\`\n${body}\n\`\`\``,
+    const bodyLine2 = isReengagement
+      ? `We recently shipped several intelligence features that we would love to walk you through.`
+      : `Please reach out if you need assistance configuring your team workspaces.`;
+
+    const bodyLine3 = isReengagement
+      ? `Do you have 15 minutes this Thursday for a quick touchpoint?`
+      : `Looking forward to driving exceptional outcomes together.`;
+
+    response = {
+      text: [
+        `Personalized email drafted for ${matchedCustomer.name}:`,
+        `1. Recipient: ${matchedCustomer.name} (${matchedCustomer.email})`,
+        `2. Organization: ${matchedCustomer.company}`,
+        `3. Account Status: ${matchedCustomer.status}`,
+        `4. Subject Line: ${subject}`,
+        `5. Opening: ${bodyLine1}`,
+        `6. Content: ${bodyLine2}`,
+        `7. Call to Action: ${bodyLine3}`,
+        "8. Signoff: Best regards, Operations Team"
+      ].join('\n'),
       toolCalled: 'draft_email',
       badge: `Drafted Email for ${matchedCustomer.name}`
     };
@@ -233,20 +307,44 @@ export async function processCopilotMessage(userInput, context) {
 
   // 7. EXECUTIVE PORTFOLIO SUMMARY INTENT
   // e.g. "summarize how we are doing", "give me a report", "portfolio health"
-  if (lower.includes('summary') || lower.includes('report') || lower.includes('how are we doing') || lower.includes('health') || lower.includes('overview')) {
+  else if (lower.includes('summary') || lower.includes('report') || lower.includes('how are we doing') || lower.includes('health') || lower.includes('overview')) {
     const activePct = Math.round((stats.active / (stats.total || 1)) * 100);
     const churnPct = Math.round((stats.inactive / (stats.total || 1)) * 100);
 
-    return {
-      text: `### 📊 Executive Portfolio Briefing\n\n- **Total Customer Accounts:** ${stats.total}\n- **Active Ratio:** **${activePct}%** (${stats.active} accounts contracted)\n- **Churn Risk / Inactive:** **${churnPct}%** (${stats.inactive} accounts paused)\n- **Acquisition Velocity:** **${stats.newThisMonth} new signups** recorded this month.\n\n💡 **AI Recommendation:** Re-engage the ${stats.inactive} inactive clients with a tailored review or promotion to boost active retention above 85%.`,
+    response = {
+      text: [
+        "Executive Portfolio Intelligence Report:",
+        `1. Total Customers: ${stats.total} accounts registered`,
+        `2. Active Paying Customers: ${stats.active} accounts (${activePct}% active ratio)`,
+        `3. Inactive or Paused Accounts: ${stats.inactive} accounts (${churnPct}% churn risk)`,
+        `4. New This Month: ${stats.newThisMonth} new client accounts onboarded`,
+        `5. Strategic Recommendation: Launch outreach campaigns targeting the ${stats.inactive} inactive clients to maintain 85%+ retention`
+      ].join('\n'),
       toolCalled: 'get_portfolio_summary',
       badge: 'Generated Portfolio Briefing'
     };
   }
 
   // 8. GENERAL ASSISTANCE FALLBACK
-  return {
-    text: `I'm your **NexusCRM Copilot Agent**. Here are some tasks I can execute for you:\n\n- *"Add customer Elena at Spotify, active"* (Runs \`add_customer\`)\n- *"Show inactive customers"* (Filters directory)\n- *"Summarize portfolio health"* (Generates KPI analysis)\n- *"Draft re-engagement email for David"* (Creates tailored email)\n- *"Switch to dark mode"* (Toggles UI appearance)`,
-    toolCalled: null
-  };
+  else {
+    response = {
+      text: [
+        "Here are the core actions you can ask me to perform:",
+        "1. Add Customers: Add customer Elena at Spotify, active, elena@spotify.com",
+        "2. Filter Directory: Show inactive customers",
+        "3. Executive Summary: Summarize portfolio health and performance metrics",
+        "4. Email Generation: Draft a re-engagement email for David Sterling",
+        "5. Appearance Control: Switch to dark mode or light mode",
+        "6. Workspace Navigation: Go to settings or open dashboard"
+      ].join('\n'),
+      toolCalled: null
+    };
+  }
+
+  // Mandatory post-processing: remove ALL asterisks (*) from the final output
+  if (response && response.text) {
+    response.text = response.text.replace(/\*/g, '').trim();
+  }
+
+  return response;
 }
