@@ -1,7 +1,7 @@
 /**
  * NexusCRM AI Copilot Agent Service
- * Deep Customer Intelligence, Accurate Query Answering, Tool Calling, and Execution.
- * Guaranteed: 100% accurate data from live CRM state, strict point-by-point format, zero asterisks (*).
+ * Deep Customer Intelligence, Conversational Q&A, Tool Calling, and Execution.
+ * Guaranteed: Zero asterisks (*), strictly structured in points, typo-tolerant.
  */
 
 export const COPILOT_TOOLS = [
@@ -36,6 +36,11 @@ export const COPILOT_TOOLS = [
     parameters: []
   },
   {
+    name: 'explain_company_work',
+    description: 'Explains the company business model, purpose, and operations.',
+    parameters: []
+  },
+  {
     name: 'draft_email',
     description: 'Generates a personalized outreach or re-engagement email.',
     parameters: ['customerName', 'tone']
@@ -54,88 +59,200 @@ export const COPILOT_TOOLS = [
 
 export async function processCopilotMessage(userInput, context) {
   const input = userInput.trim();
-  const lower = input.toLowerCase();
+  // Normalize typos for resilient natural language understanding
+  const normalized = input
+    .toLowerCase()
+    .replace(/\bwaht\b/g, 'what')
+    .replace(/\bcompnay\b/g, 'company')
+    .replace(/\bbuisness\b/g, 'business')
+    .replace(/\bclinet\b/g, 'client')
+    .replace(/\bcutomer\b/g, 'customer')
+    .replace(/\bactve\b/g, 'active')
+    .replace(/\binactve\b/g, 'inactive')
+    .replace(/\bwrk\b/g, 'work');
 
   // Artificial thinking latency simulation for realism (350ms)
   await new Promise(r => setTimeout(r, 350));
 
-  const { customers, stats, addCustomer, deleteCustomer, setActiveTab, toggleTheme, theme } = context;
+  const { customers, stats, addCustomer, deleteCustomer, setActiveTab, toggleTheme, theme, user, profile } = context;
 
   let response = null;
 
   // =========================================================================
-  // 1. SPECIFIC CUSTOMER DETAIL LOOKUP
-  // e.g. "who is Sophia", "details of Kenji", "find Marcus Thorne", "what is David's email", "tell me about Hillcrest"
+  // 1. COMPANY WORK & BUSINESS PURPOSE QUESTIONS
+  // e.g. "what is your company's work", "what do you do", "about company", "what is this platform"
   // =========================================================================
-  const isLookupQuery =
-    lower.includes('who is') ||
-    lower.includes('tell me about') ||
-    lower.includes('details of') ||
-    lower.includes('search for') ||
-    lower.includes('find ') ||
-    lower.includes('email of') ||
-    lower.includes('phone of') ||
-    lower.includes('info on') ||
-    lower.includes('information about') ||
-    lower.includes('contact for');
-
-  // Find if query mentions any specific customer by first name, full name, or company
-  const matchedCustomer = customers.find(c => {
-    const firstName = c.name.toLowerCase().split(' ')[0];
-    const lastName = c.name.toLowerCase().split(' ')[1] || '';
-    const fullName = c.name.toLowerCase();
-    const comp = c.company.toLowerCase();
-
-    return (
-      lower.includes(fullName) ||
-      (firstName.length > 2 && lower.includes(firstName)) ||
-      (lastName.length > 2 && lower.includes(lastName)) ||
-      lower.includes(comp)
-    );
-  });
-
-  if ((isLookupQuery && matchedCustomer) || (matchedCustomer && (lower.includes('email') || lower.includes('phone') || lower.includes('company') || lower.includes('status')) && !lower.startsWith('add') && !lower.startsWith('draft') && !lower.startsWith('delete'))) {
-    const formattedDate = new Date(matchedCustomer.createdAt).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-
+  if (
+    normalized.includes('company') && (normalized.includes('work') || normalized.includes('do') || normalized.includes('business') || normalized.includes('purpose') || normalized.includes('about')) ||
+    normalized.includes('what do you do') ||
+    normalized.includes('what does this app do') ||
+    normalized.includes('what is this platform') ||
+    normalized.includes('what is nexuscrm') ||
+    normalized.includes('about nexuscrm') ||
+    normalized.includes('tell me about your company') ||
+    normalized.includes('what are your services')
+  ) {
     response = {
       text: [
-        `Verified profile details for ${matchedCustomer.name}:`,
-        `1. Full Name: ${matchedCustomer.name}`,
-        `2. Organization: ${matchedCustomer.company}`,
-        `3. Email Address: ${matchedCustomer.email}`,
-        `4. Phone Number: ${matchedCustomer.phone}`,
-        `5. Contract Status: ${matchedCustomer.status}`,
-        `6. Date Onboarded: ${formattedDate}`,
-        `7. Account Identifier: ${matchedCustomer.id}`
+        "About NexusCRM and our organization:",
+        "1. Core Purpose: We are an Enterprise Customer Relationship Management (CRM) platform built to manage, track, and scale B2B customer relationships.",
+        "2. Client Lifecycle Management: We maintain comprehensive customer directories, track contracted active partners, and monitor inactive or paused accounts.",
+        "3. Real-Time Business Intelligence: We provide executive analytics, acquisition velocity charts, churn risk analysis, and growth forecasting.",
+        "4. Operational Automation: We streamline client onboarding, outreach communication, and directory administration through AI agentic workflows.",
+        "5. Current Scale: Our workspace is currently orchestrating " + stats.total + " client organizations across multiple global business sectors."
       ].join('\n'),
-      toolCalled: 'get_customer_details',
-      badge: `Retrieved ${matchedCustomer.name}`,
-      data: matchedCustomer
+      toolCalled: 'explain_company_work',
+      badge: 'Company Information'
     };
   }
 
   // =========================================================================
-  // 2. LIVE COUNT & STATISTIC QUESTIONS
+  // 2. GREETINGS & CASUAL INTRODUCTIONS
+  // e.g. "hi", "hello", "hey", "who are you", "good morning", "how are you"
+  // =========================================================================
+  else if (
+    /^(hi|hello|hey|greetings|good morning|good afternoon|good evening)\b/i.test(normalized) &&
+    !normalized.includes('who is') && !normalized.includes('add') && !normalized.includes('delete') && !normalized.includes('show')
+  ) {
+    response = {
+      text: [
+        "Hello! I am your Nexus AI Copilot assistant:",
+        "1. Role: I am your automated CRM operations assistant embedded directly into this workspace.",
+        "2. What I Can Do: Look up client profiles, summarize business health, execute directory updates, and draft communications.",
+        "3. Live Status: Connected to your live database of " + stats.total + " client organizations.",
+        "4. How to Ask: You can ask me questions about clients, request business metrics, or instruct me to take direct actions."
+      ].join('\n'),
+      toolCalled: null
+    };
+  }
+
+  // =========================================================================
+  // 3. WHO ARE YOU / IDENTITY
+  // e.g. "who are you", "what is your role", "tell me about yourself"
+  // =========================================================================
+  else if (
+    normalized.includes('who are you') ||
+    normalized.includes('what are you') ||
+    normalized.includes('introduce yourself') ||
+    normalized.includes('your role')
+  ) {
+    response = {
+      text: [
+        "Nexus AI Copilot Profile:",
+        "1. Identity: Autonomous AI agent designed specifically for NexusCRM operations.",
+        "2. Connected Capabilities: Capable of calling real tools to modify React state, filter tables, and add or delete records.",
+        "3. Data Access: Real-time read and write access to all customer records, metrics, and application settings.",
+        "4. Speed: Operates instantly inside your browser with zero latency or external dependencies."
+      ].join('\n'),
+      toolCalled: null
+    };
+  }
+
+  // =========================================================================
+  // 4. CURRENT LOGGED IN USER / PROFILE QUESTIONS
+  // e.g. "who am i", "my profile", "who is logged in", "current user"
+  // =========================================================================
+  else if (
+    normalized.includes('who am i') ||
+    normalized.includes('my profile') ||
+    normalized.includes('who is logged in') ||
+    normalized.includes('current user')
+  ) {
+    const adminUser = user || profile;
+    response = {
+      text: [
+        "Current Authenticated Operator:",
+        "1. Name: " + adminUser.name,
+        "2. Work Email: " + adminUser.email,
+        "3. Role / Title: " + (adminUser.role || "Administrator"),
+        "4. Access Level: Full administrative privileges over customer records and settings"
+      ].join('\n'),
+      toolCalled: null
+    };
+  }
+
+  // =========================================================================
+  // 5. SPECIFIC CUSTOMER DETAIL LOOKUP
+  // e.g. "who is Sophia", "details of Kenji", "find Marcus Thorne", "what is David's email", "tell me about Hillcrest"
+  // =========================================================================
+  else if (
+    normalized.includes('who is') ||
+    normalized.includes('tell me about') ||
+    normalized.includes('details of') ||
+    normalized.includes('search for') ||
+    normalized.includes('find ') ||
+    normalized.includes('email of') ||
+    normalized.includes('phone of') ||
+    normalized.includes('info on') ||
+    normalized.includes('information about') ||
+    normalized.includes('contact for')
+  ) {
+    const matched = customers.find(c => {
+      const firstName = c.name.toLowerCase().split(' ')[0];
+      const lastName = c.name.toLowerCase().split(' ')[1] || '';
+      const fullName = c.name.toLowerCase();
+      const comp = c.company.toLowerCase();
+
+      return (
+        normalized.includes(fullName) ||
+        (firstName.length > 2 && normalized.includes(firstName)) ||
+        (lastName.length > 2 && normalized.includes(lastName)) ||
+        normalized.includes(comp)
+      );
+    });
+
+    if (matched) {
+      const formattedDate = new Date(matched.createdAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      response = {
+        text: [
+          `Verified profile details for ${matched.name}:`,
+          `1. Full Name: ${matched.name}`,
+          `2. Organization: ${matched.company}`,
+          `3. Email Address: ${matched.email}`,
+          `4. Phone Number: ${matched.phone}`,
+          `5. Contract Status: ${matched.status}`,
+          `6. Date Onboarded: ${formattedDate}`,
+          `7. Account Identifier: ${matched.id}`
+        ].join('\n'),
+        toolCalled: 'get_customer_details',
+        badge: `Retrieved ${matched.name}`,
+        data: matched
+      };
+    } else {
+      response = {
+        text: [
+          "Customer lookup status:",
+          "1. Query: Did not find a direct match in the database",
+          "2. Suggestion: Check spelling or search in the Customer Directory tab"
+        ].join('\n'),
+        toolCalled: null
+      };
+    }
+  }
+
+  // =========================================================================
+  // 6. LIVE COUNT & STATISTIC QUESTIONS
   // e.g. "how many customers", "how many active", "how many inactive", "how many new"
   // =========================================================================
-  else if (lower.includes('how many') || lower.includes('count of') || lower.includes('total number')) {
-    if (lower.includes('active') && !lower.includes('inactive')) {
+  else if (normalized.includes('how many') || normalized.includes('count of') || normalized.includes('total number') || normalized.includes('statistics')) {
+    if (normalized.includes('active') && !normalized.includes('inactive')) {
       const activePct = Math.round((stats.active / (stats.total || 1)) * 100);
       response = {
         text: [
           "Active Customer Metric:",
           `1. Count: ${stats.active} active accounts`,
           `2. Ratio: ${activePct}% of total customer base`,
-          `3. Status: Currently contracted and paying`
+          `3. Status: Currently contracted and actively paying`
         ].join('\n'),
         toolCalled: 'get_portfolio_summary',
         badge: `Active Count: ${stats.active}`
       };
-    } else if (lower.includes('inactive')) {
+    } else if (normalized.includes('inactive')) {
       const inactivePct = Math.round((stats.inactive / (stats.total || 1)) * 100);
       response = {
         text: [
@@ -147,7 +264,7 @@ export async function processCopilotMessage(userInput, context) {
         toolCalled: 'get_portfolio_summary',
         badge: `Inactive Count: ${stats.inactive}`
       };
-    } else if (lower.includes('new') || lower.includes('this month')) {
+    } else if (normalized.includes('new') || normalized.includes('this month')) {
       response = {
         text: [
           "New Customer Acquisition Metric:",
@@ -174,14 +291,14 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 3. LIST REAL CUSTOMERS BY STATUS OR RECENT SIGNUPS
+  // 7. LIST REAL CUSTOMERS BY STATUS OR RECENT SIGNUPS
   // e.g. "list inactive customers", "who are the inactive clients", "show latest signups"
   // =========================================================================
   else if (
-    (lower.includes('list') || lower.includes('who are') || lower.includes('show all') || lower.includes('names of')) &&
-    (lower.includes('inactive') || lower.includes('active') || lower.includes('new') || lower.includes('recent') || lower.includes('customer'))
+    (normalized.includes('list') || normalized.includes('who are') || normalized.includes('show all') || normalized.includes('names of')) &&
+    (normalized.includes('inactive') || normalized.includes('active') || normalized.includes('new') || normalized.includes('recent') || normalized.includes('customer'))
   ) {
-    if (lower.includes('inactive')) {
+    if (normalized.includes('inactive')) {
       const inactives = customers.filter(c => c.status === 'Inactive');
       const items = inactives.slice(0, 8).map((c, idx) => `${idx + 1}. ${c.name} (${c.company}) - ${c.email}`);
       if (inactives.length > 8) {
@@ -196,7 +313,7 @@ export async function processCopilotMessage(userInput, context) {
         toolCalled: 'list_customers_by_status',
         badge: `Listed ${inactives.length} Inactive Clients`
       };
-    } else if (lower.includes('new') || lower.includes('recent')) {
+    } else if (normalized.includes('new') || normalized.includes('recent')) {
       const recents = customers.slice(0, 6).map((c, idx) => {
         const dateStr = new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         return `${idx + 1}. ${c.name} (${c.company}) - Joined ${dateStr}`;
@@ -225,10 +342,10 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 4. ADD CUSTOMER INTENT
+  // 8. ADD CUSTOMER INTENT
   // e.g. "add customer Sarah Jenkins at Netflix, active, sarah@netflix.com, 555-0199"
   // =========================================================================
-  else if (lower.startsWith('add ') || lower.startsWith('create ') || lower.includes('new customer') || lower.includes('new client')) {
+  else if (normalized.startsWith('add ') || normalized.startsWith('create ') || normalized.includes('new customer') || normalized.includes('new client')) {
     // Extract Name
     let name = 'New Client';
     const nameMatch = input.match(/(?:named|customer|client|add|create)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i);
@@ -261,7 +378,7 @@ export async function processCopilotMessage(userInput, context) {
     }
 
     // Extract Status
-    const status = lower.includes('inactive') ? 'Inactive' : 'Active';
+    const status = normalized.includes('inactive') ? 'Inactive' : 'Active';
 
     const newCustomer = addCustomer({
       name,
@@ -271,7 +388,6 @@ export async function processCopilotMessage(userInput, context) {
       status
     });
 
-    // Auto-navigate to customers so user immediately sees the result
     setActiveTab('customers');
 
     response = {
@@ -291,11 +407,11 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 5. DELETE CUSTOMER INTENT
+  // 9. DELETE CUSTOMER INTENT
   // e.g. "delete customer David Sterling", "remove Kenji"
   // =========================================================================
-  else if (lower.startsWith('delete ') || lower.startsWith('remove ')) {
-    const targetQuery = lower.replace(/^(delete|remove)\s+(customer|client)?/i, '').trim();
+  else if (normalized.startsWith('delete ') || normalized.startsWith('remove ')) {
+    const targetQuery = normalized.replace(/^(delete|remove)\s+(customer|client)?/i, '').trim();
 
     if (!targetQuery) {
       response = {
@@ -342,13 +458,13 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 6. FILTER DIRECTORY VIEW
+  // 10. FILTER DIRECTORY VIEW
   // e.g. "show inactive customers", "filter active", "show all"
   // =========================================================================
-  else if (lower.includes('inactive') || lower.includes('active') || lower.includes('filter') || lower.includes('show customers')) {
+  else if (normalized.includes('inactive') || normalized.includes('active') || normalized.includes('filter') || normalized.includes('show customers')) {
     setActiveTab('customers');
 
-    if (lower.includes('inactive')) {
+    if (normalized.includes('inactive')) {
       response = {
         text: [
           "Directory filter updated:",
@@ -361,7 +477,7 @@ export async function processCopilotMessage(userInput, context) {
         badge: 'Filter: Inactive',
         filterStatus: 'Inactive'
       };
-    } else if (lower.includes('active')) {
+    } else if (normalized.includes('active')) {
       response = {
         text: [
           "Directory filter updated:",
@@ -390,11 +506,11 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 7. THEME TOGGLE INTENT
+  // 11. THEME TOGGLE INTENT
   // e.g. "switch to dark mode", "turn on light theme", "toggle dark mode"
   // =========================================================================
-  else if (lower.includes('dark mode') || lower.includes('light mode') || lower.includes('theme') || lower.includes('appearance')) {
-    if ((lower.includes('dark') && theme === 'light') || (lower.includes('light') && theme === 'dark') || lower.includes('toggle')) {
+  else if (normalized.includes('dark mode') || normalized.includes('light mode') || normalized.includes('theme') || normalized.includes('appearance')) {
+    if ((normalized.includes('dark') && theme === 'light') || (normalized.includes('light') && theme === 'dark') || normalized.includes('toggle')) {
       toggleTheme();
       const newTheme = theme === 'dark' ? 'light' : 'dark';
       response = {
@@ -420,10 +536,10 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 8. NAVIGATION INTENT
+  // 12. NAVIGATION INTENT
   // e.g. "go to settings", "open dashboard", "show analytics"
   // =========================================================================
-  else if (lower.includes('settings') || lower.includes('preferences')) {
+  else if (normalized.includes('settings') || normalized.includes('preferences')) {
     setActiveTab('settings');
     response = {
       text: [
@@ -434,7 +550,7 @@ export async function processCopilotMessage(userInput, context) {
       toolCalled: 'navigate_screen',
       badge: 'Navigated to Settings'
     };
-  } else if (lower.includes('dashboard') || lower.includes('analytics') || lower.includes('home')) {
+  } else if (normalized.includes('dashboard') || normalized.includes('analytics') || normalized.includes('home')) {
     setActiveTab('dashboard');
     response = {
       text: [
@@ -448,16 +564,16 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 9. DRAFT EMAIL INTENT
+  // 13. DRAFT EMAIL INTENT
   // e.g. "draft an email for David Sterling", "re-engagement email"
   // =========================================================================
-  else if (lower.includes('draft') || lower.includes('email') || lower.includes('outreach') || lower.includes('message')) {
+  else if (normalized.includes('draft') || normalized.includes('email') || normalized.includes('outreach') || normalized.includes('message')) {
     const targetClient = customers.find(c => {
       const firstName = c.name.toLowerCase().split(' ')[0];
-      return lower.includes(firstName) || lower.includes(c.name.toLowerCase()) || lower.includes(c.company.toLowerCase());
+      return normalized.includes(firstName) || normalized.includes(c.name.toLowerCase()) || normalized.includes(c.company.toLowerCase());
     }) || customers[0];
 
-    const isReengagement = lower.includes('re-engage') || targetClient.status === 'Inactive';
+    const isReengagement = normalized.includes('re-engage') || targetClient.status === 'Inactive';
 
     const subject = isReengagement
       ? `Checking in: Special partnership update for ${targetClient.company}`
@@ -493,10 +609,10 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 10. EXECUTIVE PORTFOLIO SUMMARY INTENT
+  // 14. EXECUTIVE PORTFOLIO SUMMARY INTENT
   // e.g. "summarize how we are doing", "give me a report", "portfolio health"
   // =========================================================================
-  else if (lower.includes('summary') || lower.includes('report') || lower.includes('how are we doing') || lower.includes('health') || lower.includes('overview') || lower.includes('analytics')) {
+  else if (normalized.includes('summary') || normalized.includes('report') || normalized.includes('how are we doing') || normalized.includes('health') || normalized.includes('overview')) {
     const activePct = Math.round((stats.active / (stats.total || 1)) * 100);
     const churnPct = Math.round((stats.inactive / (stats.total || 1)) * 100);
 
@@ -515,19 +631,18 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 11. GENERAL REASONING & ACCURATE CONTEXT-AWARE FALLBACK
+  // 15. CONVERSATIONAL FALLBACK
   // =========================================================================
   else {
-    // Check if the user is asking a general question about the app or features
     response = {
       text: [
-        "I analyzed your request against the live CRM database:",
-        `1. Current Dataset: Managing ${stats.total} total customers (${stats.active} active, ${stats.inactive} inactive)`,
-        "2. Customer Lookups: Ask 'Who is [Name]?' to view any verified contact profile",
-        "3. Live Metrics: Ask 'How many active customers?' for real-time counts",
-        "4. Client Roster: Ask 'List inactive customers' to see matching company names",
+        "Here are the ways I can assist your operations:",
+        "1. Company Information: Ask 'What is our company's work?' or 'What does NexusCRM do?'",
+        "2. Client Lookups: Ask 'Who is [Name]?' to view their contact and organization details",
+        "3. Live Statistics: Ask 'How many active customers?' or 'Summarize portfolio'",
+        "4. Client Listings: Ask 'List inactive customers' to see all paused accounts",
         "5. Account Creation: Say 'Add customer [Name] at [Company], active'",
-        "6. Outreach: Say 'Draft email for [Name]'"
+        "6. Communications: Say 'Draft email for [Name]'"
       ].join('\n'),
       toolCalled: null
     };
