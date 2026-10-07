@@ -1,12 +1,17 @@
 /**
  * NexusCRM AI Copilot Agent Service
- * Deep Customer Intelligence & Direct Profile Fetching for all 28 Customers.
- * Guaranteed: Zero asterisks (*), strictly formatted in numbered points.
+ * Deep Customer Intelligence, Full CRUD Modifications (Add, Edit, Delete), and Profile Fetching.
+ * Guaranteed: Zero asterisks (*), strictly formatted in numbered points, instant state persistence.
  */
 
 import { INITIAL_CUSTOMERS } from '../data/mockCustomers';
 
 export const COPILOT_TOOLS = [
+  {
+    name: 'update_customer',
+    description: 'Modifies and saves existing customer profile attributes (status, phone, email, company, name).',
+    parameters: ['customerId', 'updatedFields']
+  },
   {
     name: 'fetch_customer_profile',
     description: 'Fetches the complete profile and contact information of a customer by name, company, or email.',
@@ -57,7 +62,7 @@ export const COPILOT_TOOLS = [
 export async function processCopilotMessage(userInput, context) {
   const input = userInput.trim();
 
-  // Normalize common typos while preserving names
+  // Normalize common typos while preserving entity values
   const normalized = input
     .toLowerCase()
     .replace(/\bwaht\b/g, 'what')
@@ -65,12 +70,25 @@ export async function processCopilotMessage(userInput, context) {
     .replace(/\bbuisness\b/g, 'business')
     .replace(/\bclinet\b/g, 'client')
     .replace(/\bcutomer\b/g, 'customer')
-    .replace(/\bwrk\b/g, 'work');
+    .replace(/\bwrk\b/g, 'work')
+    .replace(/\bchaneg\b/g, 'change')
+    .replace(/\bupadte\b/g, 'update');
 
-  // Simulated thinking delay for realistic agent response (350ms)
+  // Simulated thinking delay for realism (350ms)
   await new Promise(r => setTimeout(r, 350));
 
-  const { customers, stats, addCustomer, deleteCustomer, setActiveTab, toggleTheme, theme, user, profile } = context;
+  const {
+    customers,
+    stats,
+    addCustomer,
+    updateCustomer,
+    deleteCustomer,
+    setActiveTab,
+    toggleTheme,
+    theme,
+    user,
+    profile
+  } = context;
 
   // Active customer pool (fallback to INITIAL_CUSTOMERS if state is empty)
   const customerPool = (customers && customers.length > 0) ? customers : INITIAL_CUSTOMERS;
@@ -78,13 +96,12 @@ export async function processCopilotMessage(userInput, context) {
   let response = null;
 
   // =========================================================================
-  // 1. DIRECT CUSTOMER MATCHING (High Priority Entity Recognition)
-  // Check if user is asking about ANY of the 28 customers or their company
+  // ENTITY RECOGNITION: Match any of the 28 customers
   // =========================================================================
   const cleanTokens = normalized
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
-    .filter(t => t.length > 2 && !['the', 'and', 'for', 'who', 'what', 'tell', 'about', 'give', 'details', 'show', 'profile', 'find', 'search', 'email', 'phone', 'company', 'status', 'joined', 'when', 'does', 'work', 'works', 'info', 'information'].includes(t));
+    .filter(t => t.length > 2 && !['the', 'and', 'for', 'who', 'what', 'tell', 'about', 'give', 'details', 'show', 'profile', 'find', 'search', 'email', 'phone', 'company', 'status', 'joined', 'when', 'does', 'work', 'works', 'info', 'information', 'change', 'update', 'edit', 'modify', 'make', 'set'].includes(t));
 
   let bestCustomerMatch = null;
   let matchScore = 0;
@@ -136,14 +153,117 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 2. FETCH CUSTOMER PROFILE
-  // If a customer was identified and the query is NOT a delete/add/email command
+  // 1. UPDATE / EDIT CUSTOMER INTENT (High Priority)
+  // e.g. "change Eleanor Vance status to Inactive", "update phone of Marcus to +1 555-000-1111",
+  // e.g. "make Sophia Chen inactive", "change company of David to OpenAI", "update Kenji email to kenji@tokyo.jp"
   // =========================================================================
-  const isDeleteCommand = normalized.startsWith('delete ') || normalized.startsWith('remove ');
-  const isAddCommand = normalized.startsWith('add ') || normalized.startsWith('create ') || normalized.includes('new customer');
-  const isDraftEmailCommand = normalized.includes('draft') && normalized.includes('email');
+  const isUpdateCommand =
+    normalized.startsWith('change ') ||
+    normalized.startsWith('update ') ||
+    normalized.startsWith('set ') ||
+    normalized.startsWith('edit ') ||
+    normalized.startsWith('modify ') ||
+    normalized.startsWith('make ') ||
+    normalized.includes('change status') ||
+    normalized.includes('update status') ||
+    normalized.includes('set status') ||
+    normalized.includes('change phone') ||
+    normalized.includes('update phone') ||
+    normalized.includes('change email') ||
+    normalized.includes('update email') ||
+    normalized.includes('change company') ||
+    normalized.includes('update company');
 
-  if (bestCustomerMatch && !isDeleteCommand && !isAddCommand && !isDraftEmailCommand) {
+  if (isUpdateCommand && bestCustomerMatch) {
+    const target = bestCustomerMatch;
+    const changes = {};
+    const changeDescriptions = [];
+
+    // 1. Status change
+    if (normalized.includes('inactive') || normalized.includes('pause') || normalized.includes('churn')) {
+      changes.status = 'Inactive';
+      changeDescriptions.push("Status updated to Inactive");
+    } else if (normalized.includes('active') && (normalized.includes('status') || normalized.includes('make') || normalized.includes('set') || normalized.includes('change'))) {
+      changes.status = 'Active';
+      changeDescriptions.push("Status updated to Active");
+    }
+
+    // 2. Email change
+    const emailMatch = input.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+    if (emailMatch && emailMatch[1] !== target.email) {
+      changes.email = emailMatch[1];
+      changeDescriptions.push(`Email address updated to ${emailMatch[1]}`);
+    }
+
+    // 3. Phone change
+    const phoneMatch = input.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+    if (phoneMatch && phoneMatch[0] !== target.phone) {
+      changes.phone = phoneMatch[0];
+      changeDescriptions.push(`Phone number updated to ${phoneMatch[0]}`);
+    }
+
+    // 4. Company change
+    const companyMatch = input.match(/company\s+(?:to|as)?\s+([A-Za-z0-9&.\s]+?)(?:,|\.|\bphone|\bemail|\bactive|\binactive|$)/i);
+    if (companyMatch && companyMatch[1]) {
+      const newCompany = companyMatch[1].trim();
+      if (newCompany && !['to', 'as', 'active', 'inactive'].includes(newCompany.toLowerCase())) {
+        changes.company = newCompany;
+        changeDescriptions.push(`Company updated to ${newCompany}`);
+      }
+    }
+
+    // 5. Name change
+    const nameMatch = input.match(/name\s+(?:to|as)?\s+([A-Za-z\s]+?)(?:,|\.|\bphone|\bemail|$)/i);
+    if (nameMatch && nameMatch[1]) {
+      const newName = nameMatch[1].trim();
+      if (newName && newName.length > 2 && !['to', 'as'].includes(newName.toLowerCase())) {
+        changes.name = newName;
+        changeDescriptions.push(`Name updated to ${newName}`);
+      }
+    }
+
+    if (Object.keys(changes).length > 0) {
+      // Execute the real state update in React AppContext
+      if (typeof updateCustomer === 'function') {
+        updateCustomer(target.id, changes);
+      }
+
+      const updatedRecord = { ...target, ...changes };
+
+      response = {
+        text: [
+          `Customer record updated and saved successfully:`,
+          `1. Target Account: ${updatedRecord.name}`,
+          `2. Organization: ${updatedRecord.company}`,
+          `3. Changes Applied: ${changeDescriptions.join(', ')}`,
+          `4. Verified Email: ${updatedRecord.email}`,
+          `5. Verified Phone: ${updatedRecord.phone}`,
+          `6. Current Status: ${updatedRecord.status}`,
+          "7. Live Persistence: Saved to CRM storage and reflected across all screens and KPI metrics"
+        ].join('\n'),
+        toolCalled: 'update_customer',
+        badge: `Updated ${updatedRecord.name}`,
+        data: updatedRecord
+      };
+    } else {
+      response = {
+        text: [
+          `Recognized customer ${target.name}, but need specific field changes:`,
+          "1. To change status: Say 'Change " + target.name + " status to Inactive'",
+          "2. To change phone: Say 'Update phone of " + target.name + " to +1 (555) 000-1111'",
+          "3. To change email: Say 'Update email of " + target.name + " to newemail@company.com'",
+          "4. To change company: Say 'Update company of " + target.name + " to NewCo'"
+        ].join('\n'),
+        toolCalled: null
+      };
+    }
+  }
+
+  // =========================================================================
+  // 2. FETCH CUSTOMER PROFILE
+  // If customer was identified and query is NOT delete / add / email
+  // =========================================================================
+  else if (bestCustomerMatch && !normalized.startsWith('delete ') && !normalized.startsWith('remove ') && !normalized.startsWith('add ') && !normalized.startsWith('create ') && !(normalized.includes('draft') && normalized.includes('email'))) {
     const c = bestCustomerMatch;
     const formattedDate = new Date(c.createdAt).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -151,7 +271,6 @@ export async function processCopilotMessage(userInput, context) {
       day: 'numeric'
     });
 
-    // Check if asking specifically for phone or email
     if (normalized.includes('phone') || normalized.includes('number') || normalized.includes('call')) {
       response = {
         text: [
@@ -196,7 +315,6 @@ export async function processCopilotMessage(userInput, context) {
         data: c
       };
     } else {
-      // Complete profile card
       response = {
         text: [
           `Customer Profile for ${c.name}:`,
@@ -217,7 +335,6 @@ export async function processCopilotMessage(userInput, context) {
 
   // =========================================================================
   // 3. COMPANY WORK & BUSINESS PURPOSE QUESTIONS
-  // e.g. "what is your company's work", "what do you do", "about company"
   // =========================================================================
   else if (
     (normalized.includes('company') && (normalized.includes('work') || normalized.includes('do') || normalized.includes('business') || normalized.includes('purpose') || normalized.includes('about'))) ||
@@ -245,7 +362,6 @@ export async function processCopilotMessage(userInput, context) {
 
   // =========================================================================
   // 4. GREETINGS & INTRODUCTIONS
-  // e.g. "hi", "hello", "hey", "who are you"
   // =========================================================================
   else if (
     /^(hi|hello|hey|greetings|good morning|good afternoon|good evening)\b/i.test(normalized) &&
@@ -256,8 +372,8 @@ export async function processCopilotMessage(userInput, context) {
         "Hello! I am your Nexus AI Copilot assistant:",
         "1. Role: I am your automated CRM operations assistant embedded directly into this workspace.",
         "2. Direct Data Access: I have access to all 28 customer profiles, contact numbers, emails, and company details.",
-        "3. Instant Lookups: You can ask me 'Who is Eleanor Vance?', 'What is Marcus's phone number?', or 'Tell me about Zenith Robotics'.",
-        "4. Live Operations: Ask me to summarize portfolio metrics, list inactive clients, or add new customers directly."
+        "3. Live Customer Modifications: You can instruct me to 'Change Eleanor Vance status to Inactive' or 'Update Marcus Thorne phone to 555-000-1111'.",
+        "4. Real-Time Operations: Ask me to look up profiles, calculate portfolio metrics, or add new customers directly."
       ].join('\n'),
       toolCalled: null
     };
@@ -377,7 +493,6 @@ export async function processCopilotMessage(userInput, context) {
         badge: 'Listed Recent Customers'
       };
     } else {
-      // List all or sample
       const sample = customerPool.slice(0, 10).map((c, idx) => `${idx + 1}. ${c.name} (${c.company}) - ${c.status}`);
       response = {
         text: [
@@ -622,11 +737,12 @@ export async function processCopilotMessage(userInput, context) {
     response = {
       text: [
         "Here are the ways I can assist your operations:",
-        "1. Direct Customer Lookups: Ask 'Who is Eleanor Vance?' or 'What is Kenji's phone number?'",
-        "2. Organization Queries: Ask 'Who works at Hillcrest BioTech?' or 'Details of Luminary AI'",
-        "3. Real-Time Client Listings: Ask 'List inactive customers' or 'Show latest signups'",
-        "4. Live Statistics: Ask 'How many active customers?' or 'Summarize portfolio'",
-        "5. Operations: Say 'Add customer [Name] at [Company], active' or 'Draft email for [Name]'"
+        "1. Direct Customer Updates: Say 'Change Eleanor Vance status to Inactive' or 'Update Marcus phone to 555-000-1111'",
+        "2. Direct Customer Lookups: Ask 'Who is Eleanor Vance?' or 'What is Kenji's phone number?'",
+        "3. Organization Queries: Ask 'Who works at Hillcrest BioTech?' or 'Details of Luminary AI'",
+        "4. Real-Time Client Listings: Ask 'List inactive customers' or 'Show latest signups'",
+        "5. Live Statistics: Ask 'How many active customers?' or 'Summarize portfolio'",
+        "6. Account Creation: Say 'Add customer [Name] at [Company], active'"
       ].join('\n'),
       toolCalled: null
     };

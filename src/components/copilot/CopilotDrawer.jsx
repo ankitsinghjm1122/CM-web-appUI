@@ -99,6 +99,7 @@ export default function CopilotDrawer() {
   };
 
   const quickPrompts = [
+    { label: "✏️ Mark Eleanor Inactive", prompt: "Change Eleanor Vance status to Inactive" },
     { label: "📊 Portfolio stats", prompt: "Summarize portfolio health and customer metrics" },
     { label: "👤 Who is Sophia Chen?", prompt: "Who is Sophia Chen?" },
     { label: "⚠️ List inactive clients", prompt: "List inactive customers" },
