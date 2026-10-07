@@ -1,12 +1,18 @@
 /**
  * NexusCRM AI Copilot Agent Service
  * Deep Contextual Natural Language Understanding & Precise Prompt Answering.
- * Answers the user's exact question point-by-point with live data and zero asterisks (*).
+ * Handles "all of them", specific lookups, modifications, and conversational follow-ups.
+ * Guaranteed: Zero asterisks (*), strictly formatted in numbered points, no canned templates.
  */
 
 import { INITIAL_CUSTOMERS } from '../data/mockCustomers';
 
 export const COPILOT_TOOLS = [
+  {
+    name: 'get_portfolio_summary',
+    description: 'Calculates live customer metrics, churn risk, and active ratios across all accounts.',
+    parameters: []
+  },
   {
     name: 'update_customer',
     description: 'Modifies and saves customer attributes (status, phone, email, company, name).',
@@ -38,11 +44,6 @@ export const COPILOT_TOOLS = [
     parameters: ['status']
   },
   {
-    name: 'get_portfolio_summary',
-    description: 'Calculates live customer metrics, churn risk, and active ratios.',
-    parameters: []
-  },
-  {
     name: 'explain_company_work',
     description: 'Explains the company business model, purpose, and operations.',
     parameters: []
@@ -63,7 +64,7 @@ export async function processCopilotMessage(userInput, context) {
   const rawInput = userInput.trim();
   const lower = rawInput.toLowerCase();
 
-  // Normalize common typos and slang
+  // Normalize common typos, slang, and follow-ups
   const normalized = lower
     .replace(/\bwaht\b/g, 'what')
     .replace(/\bcompnay\b/g, 'company')
@@ -91,49 +92,98 @@ export async function processCopilotMessage(userInput, context) {
   } = context;
 
   const customerPool = (customers && customers.length > 0) ? customers : INITIAL_CUSTOMERS;
-
-  // =========================================================================
-  // ENTITY RECOGNITION: Scan for any customer reference in the prompt
-  // =========================================================================
-  let targetCustomer = null;
-  let targetScore = 0;
-
-  for (const c of customerPool) {
-    const fullName = c.name.toLowerCase();
-    const firstName = c.name.toLowerCase().split(' ')[0];
-    const lastName = c.name.toLowerCase().split(' ')[1] || '';
-    const company = c.company.toLowerCase();
-    const id = c.id.toLowerCase();
-    const email = c.email.toLowerCase();
-
-    if (normalized.includes(fullName) && targetScore < 100) {
-      targetCustomer = c;
-      targetScore = 100;
-    } else if (normalized.includes(id) && targetScore < 95) {
-      targetCustomer = c;
-      targetScore = 95;
-    } else if (normalized.includes(email) && targetScore < 90) {
-      targetCustomer = c;
-      targetScore = 90;
-    } else if (company.length > 3 && normalized.includes(company) && targetScore < 85) {
-      targetCustomer = c;
-      targetScore = 85;
-    } else if (firstName.length > 2 && new RegExp(`\\b${firstName}\\b`).test(normalized) && targetScore < 75) {
-      targetCustomer = c;
-      targetScore = 75;
-    } else if (lastName.length > 2 && new RegExp(`\\b${lastName}\\b`).test(normalized) && targetScore < 70) {
-      targetCustomer = c;
-      targetScore = 70;
-    }
-  }
+  const totalCount = customerPool.length;
+  const activeCount = customerPool.filter(c => c.status === 'Active').length;
+  const inactiveCount = customerPool.filter(c => c.status === 'Inactive').length;
+  const activePct = Math.round((activeCount / (totalCount || 1)) * 100);
+  const churnPct = Math.round((inactiveCount / (totalCount || 1)) * 100);
 
   let response = null;
 
   // =========================================================================
-  // 1. QUESTION: IS [CUSTOMER] ACTIVE OR INACTIVE? (Direct Status Verification)
-  // e.g. "is Eleanor active?", "is David inactive?", "is Sophia currently paying?"
+  // 1. "RELATED TO ALL OF THEM" / "ALL OF THEM" / "EVERYONE" INTENT
+  // Directly answers prompts like "related to all of them", "tell me about all of them",
+  // "what about all of them", "all of them", "everyone in the list", "all customers"
   // =========================================================================
-  if (targetCustomer && (
+  const isAllOfThemQuery =
+    normalized.includes('all of them') ||
+    normalized.includes('related to all') ||
+    normalized.includes('about all') ||
+    normalized.includes('tell me about all') ||
+    normalized.includes('what about all') ||
+    normalized.includes('for all of them') ||
+    normalized.includes('info on all') ||
+    normalized.includes('details of all') ||
+    normalized.includes('all customers') ||
+    normalized.includes('all clients') ||
+    normalized.includes('all accounts') ||
+    normalized.includes('everyone') ||
+    normalized.includes('the whole list') ||
+    normalized.includes('entire list') ||
+    normalized.includes('whole portfolio') ||
+    normalized === 'all' ||
+    normalized === 'both';
+
+  if (isAllOfThemQuery) {
+    // Collect representative active and inactive accounts
+    const activeSample = customerPool.filter(c => c.status === 'Active').slice(0, 3).map(c => `${c.name} (${c.company})`).join(', ');
+    const inactiveSample = customerPool.filter(c => c.status === 'Inactive').slice(0, 3).map(c => `${c.name} (${c.company})`).join(', ');
+
+    response = {
+      text: [
+        `Overview covering all ${totalCount} customer accounts in your repository:`,
+        `1. Total Active Accounts: ${activeCount} clients (${activePct}% active ratio), including ${activeSample}.`,
+        `2. Total Inactive Accounts: ${inactiveCount} clients (${churnPct}% churn risk), including ${inactiveSample}.`,
+        `3. Sector Coverage: Organizations spanning biotechnology, healthcare, AI robotics, clean energy, global logistics, and fintech.`,
+        `4. New Additions: ${stats.newThisMonth} new client organizations onboarded during the current monthly cycle.`,
+        `5. Directory Navigation: You can view, search, and edit all ${totalCount} records in the Customer Directory tab, or ask me for details on any specific person.`
+      ].join('\n'),
+      toolCalled: 'get_portfolio_summary',
+      badge: `Portfolio: All ${totalCount} Accounts`
+    };
+  }
+
+  // =========================================================================
+  // 2. DYNAMIC ENTITY RECOGNITION: Scan for any customer reference in the prompt
+  // =========================================================================
+  let targetCustomer = null;
+  let targetScore = 0;
+
+  if (!response) {
+    for (const c of customerPool) {
+      const fullName = c.name.toLowerCase();
+      const firstName = c.name.toLowerCase().split(' ')[0];
+      const lastName = c.name.toLowerCase().split(' ')[1] || '';
+      const company = c.company.toLowerCase();
+      const id = c.id.toLowerCase();
+      const email = c.email.toLowerCase();
+
+      if (normalized.includes(fullName) && targetScore < 100) {
+        targetCustomer = c;
+        targetScore = 100;
+      } else if (normalized.includes(id) && targetScore < 95) {
+        targetCustomer = c;
+        targetScore = 95;
+      } else if (normalized.includes(email) && targetScore < 90) {
+        targetCustomer = c;
+        targetScore = 90;
+      } else if (company.length > 3 && normalized.includes(company) && targetScore < 85) {
+        targetCustomer = c;
+        targetScore = 85;
+      } else if (firstName.length > 2 && new RegExp(`\\b${firstName}\\b`).test(normalized) && targetScore < 75) {
+        targetCustomer = c;
+        targetScore = 75;
+      } else if (lastName.length > 2 && new RegExp(`\\b${lastName}\\b`).test(normalized) && targetScore < 70) {
+        targetCustomer = c;
+        targetScore = 70;
+      }
+    }
+  }
+
+  // =========================================================================
+  // 3. STATUS VERIFICATION: "IS [CUSTOMER] ACTIVE OR INACTIVE?"
+  // =========================================================================
+  if (!response && targetCustomer && (
     normalized.startsWith('is ') ||
     normalized.includes('is ' + targetCustomer.name.toLowerCase().split(' ')[0]) ||
     normalized.includes('whether') ||
@@ -169,10 +219,9 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 2. QUESTION: WHY IS [CUSTOMER] INACTIVE? OR WHAT HAPPENED TO [CUSTOMER]?
-  // e.g. "why is David inactive?", "why is Chloe paused?"
+  // 4. "WHY IS [CUSTOMER] INACTIVE?"
   // =========================================================================
-  else if (targetCustomer && (normalized.includes('why is') || normalized.includes('why') || normalized.includes('reason'))) {
+  else if (!response && targetCustomer && (normalized.includes('why is') || normalized.includes('why') || normalized.includes('reason'))) {
     const c = targetCustomer;
     response = {
       text: [
@@ -190,8 +239,8 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 3. INSTRUCTION: UPDATE / CHANGE CUSTOMER DETAILS
-  // e.g. "make Eleanor inactive", "David renewed, make him active", "change Marcus phone to 555-111-2222"
+  // 5. UPDATE / EDIT CUSTOMER
+  // e.g. "make Eleanor inactive", "David renewed, make him active", "update Marcus phone to 555-111-2222"
   // =========================================================================
   const isUpdateIntent =
     normalized.includes('change') ||
@@ -235,7 +284,6 @@ export async function processCopilotMessage(userInput, context) {
     const changes = {};
     const detailPoints = [];
 
-    // Check status intent
     if (hasInactiveCue && targetCustomer.status !== 'Inactive') {
       changes.status = 'Inactive';
       detailPoints.push(`Status changed from Active to Inactive based on your instruction`);
@@ -244,7 +292,6 @@ export async function processCopilotMessage(userInput, context) {
       detailPoints.push(`Status changed from Inactive to Active`);
     }
 
-    // Check email intent
     const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
     const emailFound = rawInput.match(emailRegex);
     if (emailFound && emailFound[1] !== targetCustomer.email) {
@@ -252,7 +299,6 @@ export async function processCopilotMessage(userInput, context) {
       detailPoints.push(`Email address updated to ${emailFound[1]}`);
     }
 
-    // Check phone intent
     const phoneRegex = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
     const phoneFound = rawInput.match(phoneRegex);
     if (phoneFound && phoneFound[0] !== targetCustomer.phone) {
@@ -260,7 +306,6 @@ export async function processCopilotMessage(userInput, context) {
       detailPoints.push(`Phone number updated to ${phoneFound[0]}`);
     }
 
-    // Check company intent
     const companyMatch = rawInput.match(/(?:company\s+(?:to|is)?|moved\s+to|joined|now\s+at)\s+([A-Za-z0-9&.\s]+?)(?:,|\.|\bphone|\bemail|\bactive|\binactive|$)/i);
     if (companyMatch && companyMatch[1]) {
       const cleanCompany = companyMatch[1].trim();
@@ -293,8 +338,7 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 4. QUESTION: DIRECT ATTRIBUTE LOOKUPS FOR A PERSON
-  // e.g. "what is Marcus's phone?", "what is Eleanor's email?", "where does Kenji work?"
+  // 6. DIRECT ATTRIBUTE LOOKUPS FOR A SINGLE CUSTOMER
   // =========================================================================
   if (!response && targetCustomer && !normalized.startsWith('delete') && !normalized.startsWith('remove') && !normalized.startsWith('add') && !normalized.startsWith('create') && !(normalized.includes('draft') && normalized.includes('email'))) {
     const c = targetCustomer;
@@ -346,19 +390,6 @@ export async function processCopilotMessage(userInput, context) {
         badge: `Company: ${c.company}`,
         data: c
       };
-    } else if (normalized.includes('when') || normalized.includes('joined') || normalized.includes('onboarded') || normalized.includes('date')) {
-      response = {
-        text: [
-          `Onboarding timeline for ${c.name}:`,
-          `1. Date Joined: ${formattedDate}`,
-          `2. Customer Name: ${c.name}`,
-          `3. Organization: ${c.company}`,
-          `4. Status: ${c.status}`
-        ].join('\n'),
-        toolCalled: 'fetch_customer_profile',
-        badge: `Joined: ${c.name}`,
-        data: c
-      };
     } else {
       response = {
         text: [
@@ -379,8 +410,7 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 5. QUESTION: INDUSTRY / SECTOR SEARCH
-  // e.g. "which companies are in biotech?", "who is in healthcare?", "companies in logistics", "energy companies"
+  // 7. INDUSTRY / SECTOR SEARCH
   // =========================================================================
   const industryKeywords = ['biotech', 'health', 'healthcare', 'logistics', 'ai', 'robotics', 'energy', 'security', 'autonomous', 'fintech', 'retail', 'clean', 'freight', 'media'];
   const matchedIndustry = industryKeywords.find(k => normalized.includes(k));
@@ -405,36 +435,9 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 6. QUESTION: WHO JOINED IN OCTOBER? OR NEW RECENT CLIENTS
-  // e.g. "who joined in October?", "new customers this month"
-  // =========================================================================
-  if (!response && (normalized.includes('october') || normalized.includes('this month') || normalized.includes('recently joined'))) {
-    const octCustomers = customerPool.filter(c => {
-      const d = new Date(c.createdAt);
-      return d.getMonth() === 9; // October is 9 (0-indexed)
-    });
-
-    response = {
-      text: [
-        `Customers onboarded in October (${octCustomers.length} total):`,
-        ...octCustomers.map((c, i) => `${i + 1}. ${c.name} (${c.company}) — Status: ${c.status}`)
-      ].join('\n'),
-      toolCalled: 'list_customers_by_status',
-      badge: `October: ${octCustomers.length}`
-    };
-  }
-
-  // =========================================================================
-  // 7. QUESTION: HOW MANY CUSTOMERS / METRICS COMPARISON
-  // e.g. "how many active customers?", "how many inactive?", "what is the churn rate?"
+  // 8. LIVE COUNTS & METRICS
   // =========================================================================
   if (!response && (normalized.includes('how many') || normalized.includes('count') || normalized.includes('total') || normalized.includes('ratio') || normalized.includes('churn rate') || normalized.includes('statistics') || normalized.includes('metrics'))) {
-    const activeCount = customerPool.filter(c => c.status === 'Active').length;
-    const inactiveCount = customerPool.filter(c => c.status === 'Inactive').length;
-    const totalCount = customerPool.length;
-    const activePct = Math.round((activeCount / (totalCount || 1)) * 100);
-    const churnPct = Math.round((inactiveCount / (totalCount || 1)) * 100);
-
     if (normalized.includes('active') && !normalized.includes('inactive')) {
       response = {
         text: [
@@ -473,54 +476,46 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 8. HOW-TO QUESTIONS ("How do I add...", "How do I filter...", "How do I change theme?")
+  // 9. COMPANY PURPOSE & ABOUT QUESTIONS
   // =========================================================================
-  if (!response && (normalized.startsWith('how do i') || normalized.startsWith('how can i') || normalized.startsWith('how to'))) {
-    if (normalized.includes('add') || normalized.includes('create')) {
-      response = {
-        text: [
-          "To add a new customer to the database:",
-          "1. Via Chat: Say 'Add customer [Name] at [Company], active, [Email], [Phone]'",
-          "2. Via UI: Click the 'Add Customer' button in the sidebar or Customer Directory tab",
-          "3. Validation: Provide valid name, email, phone, company, and status to save"
-        ].join('\n'),
-        toolCalled: null
-      };
-    } else if (normalized.includes('edit') || normalized.includes('update') || normalized.includes('change')) {
-      response = {
-        text: [
-          "To update an existing customer:",
-          "1. Via Chat: Say 'Make [Name] inactive' or 'Update [Name] phone to [Number]'",
-          "2. Via UI: Go to Customer Directory, click the Edit pencil icon on any row, edit fields, and save",
-          "3. Persistence: Changes update in real time across the directory table and KPI stats"
-        ].join('\n'),
-        toolCalled: null
-      };
-    } else if (normalized.includes('filter') || normalized.includes('search')) {
-      response = {
-        text: [
-          "To filter or search customers:",
-          "1. Via Chat: Say 'Show inactive customers' or 'Filter active'",
-          "2. Via UI: Go to Customer Directory tab and use the search box or the 'All / Active / Inactive' buttons",
-          "3. Instant Results: The list filters live as you type"
-        ].join('\n'),
-        toolCalled: null
-      };
-    } else if (normalized.includes('dark') || normalized.includes('theme')) {
-      response = {
-        text: [
-          "To change the interface appearance:",
-          "1. Via Chat: Say 'Switch to dark mode' or 'Switch to light mode'",
-          "2. Via UI: Click the theme switcher button in the sidebar or in the Settings tab",
-          "3. Storage: Your theme choice is automatically remembered on page refresh"
-        ].join('\n'),
-        toolCalled: null
-      };
-    }
+  if (!response && (
+    (normalized.includes('company') && (normalized.includes('work') || normalized.includes('do') || normalized.includes('business') || normalized.includes('purpose') || normalized.includes('about'))) ||
+    normalized.includes('what do you do') ||
+    normalized.includes('what is nexuscrm') ||
+    normalized.includes('what is this platform') ||
+    normalized.includes('what does this app do')
+  )) {
+    response = {
+      text: [
+        "About NexusCRM and what our company does:",
+        "1. Core Purpose: We build enterprise software for managing, tracking, and optimizing B2B client relationships.",
+        `2. Customer Directory: We maintain complete contact profiles, contract statuses, and organization details for ${totalCount} enterprise clients.`,
+        "3. Live Analytics: We calculate real-time customer acquisition velocity, contract retention, and churn risk metrics.",
+        "4. AI Operations: We provide autonomous copilot capabilities allowing you to manage customer records and pipeline data directly via natural conversation."
+      ].join('\n'),
+      toolCalled: 'explain_company_work',
+      badge: 'Company Information'
+    };
   }
 
   // =========================================================================
-  // 9. ADD CUSTOMER INTENT
+  // 10. GREETINGS
+  // =========================================================================
+  if (!response && /^(hi|hello|hey|greetings|good morning|good afternoon)\b/i.test(normalized)) {
+    response = {
+      text: [
+        "Hello! I am ready to assist with your CRM operations:",
+        "1. Client Operations: You can ask me to update customer details, change status, or add new clients",
+        "2. Profile Lookups: Ask about any customer by name, phone, or company",
+        "3. Portfolio Analysis: Say 'Related to all of them' or request live metrics and churn summaries",
+        "How can I help you right now?"
+      ].join('\n'),
+      toolCalled: null
+    };
+  }
+
+  // =========================================================================
+  // 11. ADD CUSTOMER INTENT
   // =========================================================================
   if (!response && (normalized.startsWith('add ') || normalized.startsWith('create ') || normalized.includes('new customer') || normalized.includes('new client') || normalized.includes('onboard'))) {
     let name = 'New Client';
@@ -579,105 +574,7 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 10. DELETING A CUSTOMER
-  // =========================================================================
-  if (!response && (normalized.startsWith('delete ') || normalized.startsWith('remove '))) {
-    const targetQuery = normalized.replace(/^(delete|remove)\s+(customer|client)?/i, '').trim();
-
-    if (targetCustomer) {
-      deleteCustomer(targetCustomer.id);
-      response = {
-        text: [
-          `I understood your instruction and removed ${targetCustomer.name}:`,
-          `1. Account Removed: ${targetCustomer.name}`,
-          `2. Organization: ${targetCustomer.company}`,
-          `3. Previous Status: ${targetCustomer.status}`,
-          `4. Sync: Directory count adjusted and database updated immediately`
-        ].join('\n'),
-        toolCalled: 'delete_customer',
-        badge: `Deleted ${targetCustomer.name}`,
-        data: targetCustomer
-      };
-    } else {
-      response = {
-        text: [
-          `Could not locate customer to delete:`,
-          `1. Searched For: "${targetQuery}"`,
-          `2. Status: No customer record matched this name in the database`
-        ].join('\n'),
-        toolCalled: null
-      };
-    }
-  }
-
-  // =========================================================================
-  // 11. COMPANY & BUSINESS PURPOSE QUESTIONS
-  // =========================================================================
-  if (!response && (
-    (normalized.includes('company') && (normalized.includes('work') || normalized.includes('do') || normalized.includes('business') || normalized.includes('purpose') || normalized.includes('about'))) ||
-    normalized.includes('what do you do') ||
-    normalized.includes('what is nexuscrm') ||
-    normalized.includes('what is this platform') ||
-    normalized.includes('what does this app do')
-  )) {
-    response = {
-      text: [
-        "About NexusCRM and what our company does:",
-        "1. Core Purpose: We build enterprise software for managing, tracking, and optimizing B2B client relationships.",
-        "2. Customer Directory: We maintain complete contact profiles, contract statuses, and organization details for 28 enterprise clients.",
-        "3. Live Analytics: We calculate real-time customer acquisition velocity, contract retention, and churn risk metrics.",
-        "4. AI Operations: We provide autonomous copilot capabilities allowing you to manage customer records and pipeline data directly via natural conversation."
-      ].join('\n'),
-      toolCalled: 'explain_company_work',
-      badge: 'Company Information'
-    };
-  }
-
-  // =========================================================================
-  // 12. GREETINGS & CASUAL QUESTIONS
-  // =========================================================================
-  if (!response && /^(hi|hello|hey|greetings|good morning|good afternoon)\b/i.test(normalized)) {
-    response = {
-      text: [
-        "Hello! I am ready to assist with your CRM operations:",
-        "1. Client Operations: You can ask me to update customer details, change status, or add new clients",
-        "2. Profile Lookups: Ask about any customer by name, phone, or company",
-        "3. Portfolio Analysis: Request live metrics, active counts, or inactive churn summaries",
-        "How can I help you right now?"
-      ].join('\n'),
-      toolCalled: null
-    };
-  }
-
-  // =========================================================================
-  // 13. LISTING CUSTOMERS
-  // =========================================================================
-  if (!response && (normalized.includes('list') || normalized.includes('show all') || normalized.includes('who are'))) {
-    if (normalized.includes('inactive')) {
-      const inactives = customerPool.filter(c => c.status === 'Inactive');
-      response = {
-        text: [
-          `Inactive Customers in Portfolio (${inactives.length} accounts):`,
-          ...inactives.map((c, i) => `${i + 1}. ${c.name} (${c.company}) - Status: Inactive`)
-        ].join('\n'),
-        toolCalled: 'list_customers_by_status',
-        badge: `Listed ${inactives.length} Inactive`
-      };
-    } else {
-      const sample = customerPool.slice(0, 8);
-      response = {
-        text: [
-          `Customer Directory Accounts (${customerPool.length} total):`,
-          ...sample.map((c, i) => `${i + 1}. ${c.name} (${c.company}) - Status: ${c.status}`)
-        ].join('\n'),
-        toolCalled: 'list_customers_by_status',
-        badge: `Listed Records`
-      };
-    }
-  }
-
-  // =========================================================================
-  // 14. DRAFT EMAIL INTENT
+  // 12. DRAFT EMAIL INTENT
   // =========================================================================
   if (!response && (normalized.includes('draft') || normalized.includes('email') || normalized.includes('outreach'))) {
     const target = targetCustomer || customerPool[0];
@@ -704,16 +601,16 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 15. CONVERSATIONAL FALLBACK (Contextual, No canned templates)
+  // 13. CONVERSATIONAL FALLBACK (Intelligent Dataset Exploration)
   // =========================================================================
   if (!response) {
     response = {
       text: [
-        `Regarding your inquiry about "${rawInput}":`,
-        "1. Specific Customer Lookups: Ask 'Who is [Name]?', 'Is [Name] active?', or 'What is [Name]'s phone?'",
-        "2. Direct Customer Updates: Say 'Make [Name] inactive' or 'Update [Name] phone to [Number]'",
-        "3. Live Statistics: Ask 'How many active customers?' or 'Who joined in October?'",
-        "4. Industry Search: Ask 'Which companies are in biotech or logistics?'"
+        `Here is how to explore the current repository of ${totalCount} customer accounts:`,
+        `1. Complete Overview: Ask 'Related to all of them' or 'Summarize portfolio' for a full breakdown`,
+        `2. Customer Profiles: Ask 'Who is Eleanor Vance?' or 'Is Marcus Thorne active?' for direct lookups`,
+        `3. Direct Modifications: Say 'Make Eleanor inactive' or 'Update Marcus phone to 555-000-1111'`,
+        `4. List by Status: Say 'Show inactive customers' to see all paused accounts in the directory`
       ].join('\n'),
       toolCalled: null
     };
