@@ -74,7 +74,7 @@ export async function processCopilotMessage(userInput, context) {
     'kitne', 'kitna', 'kitni', 'kab', 'konsa', 'konsi', 'karo', 'kardo', 'kar do', 'kar dena',
     'banao', 'bana do', 'hata do', 'hatao', 'nikal do', 'jodo', 'daalo', 'likho', 'bhejo', 'dikhao',
     'batao', 'bataiye', 'sabke', 'sabhi', 'saare', 'sare', 'sab', 'purana', 'naya', 'nayi', 'fayde',
-    'matlab', 'antar', 'fark', 'walo', 'wale', 'wali', 'ka', 'ki', 'ke', 'ko', 'me', 'mein', 'se',
+    'kuch', 'kuchh', 'matlab', 'antar', 'fark', 'walo', 'wale', 'wali', 'ka', 'ki', 'ke', 'ko', 'mein', 'se',
     'tum', 'aap', 'mera', 'meri', 'hamara', 'chahiye', 'sakta', 'sakti', 'samajh', 'samajhte',
     'badlo', 'badal', 'lagao', 'madad', 'sawal', 'jawab', 'hindi', 'bhasha', 'bol', 'bolo',
     'karein', 'kare', 'bataiye', 'kiska', 'iski', 'uska', 'unki', 'unke'
@@ -971,6 +971,384 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
+  // 9.5. HUMAN CONVERSATIONAL INTELLIGENCE & SOCIAL INTERACTION
+  // =========================================================================
+
+  // A. GREETINGS & OPENERS
+  const isGreeting =
+    !response &&
+    (/\b(hi|hello|hey|hiya|greetings|namaste|namaskar|salaam|good morning|good afternoon|good evening)\b/i.test(normalized) ||
+     normalized === 'hi' ||
+     normalized === 'hello' ||
+     normalized === 'hey') &&
+    !normalized.includes('how to') &&
+    !normalized.includes('delete') &&
+    !normalized.includes('update') &&
+    !normalized.includes('status');
+
+  if (!response && isGreeting) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Namaste! Aap se baat karke bahut accha laga. Aapka din kaisa chal raha hai?",
+          "1. Live CRM Actions: Kisi bhi customer ka status badalna, naya add karna, ya record delete karna ho, bas boliye.",
+          "2. Direct Lookups: Phone number, email, ya company jankari turant praapt karein.",
+          "3. Business Growth: Churn rate, retention metrics, ya monthly growth ke baare me poochein.",
+          "4. Friendly Chat: Ya phir kisi bhi sales strategy ya sawal par normal baatcheet karein!",
+          "Aap bataiye, aaj main aapki kis cheez me madad kar sakta hoon?"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Hello!'
+      };
+    } else {
+      response = {
+        text: [
+          "Hello there! It is wonderful to connect with you. How are you doing today?",
+          "1. Live CRM Operations: Instruct me anytime to update statuses, add new clients, or delete profiles in real time.",
+          "2. Direct Lookups: Ask for any customer's direct phone number, email address, or company details.",
+          "3. Analytics & Growth: Inspect live churn rates, retention metrics, or onboarding charts.",
+          "4. Friendly Collaboration: Or we can chat, brainstorm client outreach ideas, and discuss strategy!",
+          "What is on your mind today?"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Hello!'
+      };
+    }
+  }
+
+  // B. WELL-BEING & SMALL TALK ("HOW ARE YOU?")
+  const isHowAreYou =
+    !response &&
+    (normalized.includes('how are you') ||
+     normalized.includes('how r u') ||
+     normalized.includes('how do you do') ||
+     normalized.includes('how is it going') ||
+     normalized.includes('how are things') ||
+     normalized.includes('are you ok') ||
+     normalized.includes('kaise ho') ||
+     normalized.includes('kese ho') ||
+     normalized.includes('kya haal') ||
+     normalized.includes('sab theek') ||
+     normalized.includes('sab badhiya'));
+
+  if (!response && isHowAreYou) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Main bilkul badhiya aur energetic hoon, poochne ke liye dil se shukriya!",
+          `1. System Health: NexusCRM ke sabhi ${totalCount} enterprise accounts live track ho rahe hain.`,
+          "2. Storage Sync: Aapka database bilkul safe aur up-to-date chal raha hai.",
+          "3. Aapki Madad: Main aapke har sawal aur command ke liye poori tarah taiyar hoon.",
+          "Aap bataiye, aapka din kaisa guzar raha hai? Aaj sab theek-thak?"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Doing Great!'
+      };
+    } else {
+      response = {
+        text: [
+          "I am doing fantastic, thank you so much for asking! It is always great chatting with you.",
+          `1. System State: Everything across our ${totalCount} enterprise accounts is running smoothly at 100% capacity.`,
+          "2. Real-Time Sync: The database and KPI metrics are fully synchronized and up to date.",
+          "3. Ready to Help: I am right here by your side for any quick task, calculation, or check-in.",
+          "How is your day going so far? Anything exciting or challenging on your desk today?"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Doing Great!'
+      };
+    }
+  }
+
+  // C. WHAT ARE YOU DOING / ACTIVITY
+  const isWhatDoing =
+    !response &&
+    (normalized.includes('what are you doing') ||
+     normalized.includes('what r u doing') ||
+     normalized.includes('what are you up to') ||
+     normalized.includes('what is going on') ||
+     normalized.includes('kya kar rahe ho') ||
+     normalized.includes('kya chal raha'));
+
+  if (!response && isWhatDoing) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Bas aapke saath yahan active hoon aur NexusCRM ke sabhi accounts par nazar banaye hue hoon!",
+          `1. Portfolio Oversight: ${totalCount} accounts (${activeCount} active, ${inactiveCount} inactive) ke live metrics manage kar raha hoon.`,
+          "2. Instant Readiness: Aapke kisi bhi aadesh (jaise status badalna ya phone number dhoondna) ke intezaar me hoon.",
+          "3. Conversational Partner: Aur aapke saath human jaisi behtareen baatcheet enjoy kar raha hoon!",
+          "Bataiye, abhi hum kis customer ya task par kaam karein?"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Active'
+      };
+    } else {
+      response = {
+        text: [
+          "Right now, I am right here keeping everything running like clockwork for you in NexusCRM!",
+          `1. Active Oversight: Keeping tabs on all ${totalCount} accounts (${activeCount} active, ${inactiveCount} inactive) and retention trends.`,
+          "2. Instant Availability: Standing by to update records, look up contact info, or draft emails the second you need.",
+          "3. Collaborating With You: Ready to chat through whatever questions, decisions, or ideas you have in mind.",
+          "What shall we focus on right now?"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Active'
+      };
+    }
+  }
+
+  // D. GRATITUDE & APPRECIATION
+  const isGratitude =
+    !response &&
+    (normalized.includes('thank') ||
+     normalized.includes('thx') ||
+     normalized.includes('appreciate') ||
+     normalized.includes('good job') ||
+     normalized.includes('great job') ||
+     normalized.includes('awesome') ||
+     normalized.includes('you are good') ||
+     normalized.includes('you are great') ||
+     normalized.includes('well done') ||
+     normalized.includes('dhanyawad') ||
+     normalized.includes('shukriya') ||
+     normalized.includes('shabash') ||
+     normalized.includes('bahut badhiya') ||
+     normalized.includes('badhiya kaam'));
+
+  if (!response && isGratitude) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Aapka bahut-bahut shukriya! Yeh sunkar sach me bahut accha laga.",
+          "1. Aapka Saath: Aapke saath milkar NexusCRM ko manage karna mere liye khushi ki baat hai.",
+          "2. Reliable Partner: Main hamesha koshish karta hoon ki aapko bilkul sahi aur insaan jaisa madadgaar jawab mile.",
+          "3. Agla Task: Jab bhi koi agla sawal ho ya kisi record me badlav karna ho, bas ek aadesh dijiyega!",
+          "Aapka din shandar gujre!"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: You are welcome!'
+      };
+    } else {
+      response = {
+        text: [
+          "You are so very welcome! Hearing that truly makes my day.",
+          "1. Reliable Teammate: It is genuinely a pleasure collaborating with you to keep your client operations seamless.",
+          "2. Continuous Support: I am always here to provide accurate, human-like answers and instant execution.",
+          "3. Next Move: Whenever the next question or workflow comes up, don't hesitate to give me a shout!",
+          "Keep up the great work today!"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: You are welcome!'
+      };
+    }
+  }
+
+  // E. FAREWELLS & SIGNOFFS
+  const isFarewell =
+    !response &&
+    (normalized.includes('bye') ||
+     normalized.includes('goodbye') ||
+     normalized.includes('see you') ||
+     normalized.includes('talk later') ||
+     normalized.includes('catch you later') ||
+     normalized.includes('take care') ||
+     normalized.includes('good night') ||
+     normalized.includes('alvida') ||
+     normalized.includes('phir milte') ||
+     normalized.includes('shubh ratri'));
+
+  if (!response && isFarewell) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Alvida aur apna dhyan rakhiyega!",
+          "1. Data Safe: Aapke dwara kiye gaye sabhi updates aur changes browser storage me surakshit hain.",
+          "2. 24/7 Availability: Jab bhi aap wapas aayenge, main yahin ready milunga.",
+          "3. Shubhkaamnayein: Ummeed hai aapka bacha hua din behad productive aur shaandar rahega!",
+          "Phir milte hain!"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Goodbye!'
+      };
+    } else {
+      response = {
+        text: [
+          "Goodbye and take great care of yourself!",
+          "1. Changes Preserved: All your recent customer edits and settings are safely stored in your browser storage.",
+          "2. Always On Standby: Whenever you return or need a hand, I will be right here waiting to help.",
+          "3. Best Wishes: Wishing you a relaxing, productive, and wonderful rest of your day!",
+          "Catch you later!"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Goodbye!'
+      };
+    }
+  }
+
+  // F. HUMOR & ENTERTAINMENT
+  const isJoke =
+    !response &&
+    (normalized.includes('joke') ||
+     normalized.includes('funny') ||
+     normalized.includes('laugh') ||
+     normalized.includes('humor') ||
+     normalized.includes('chutkula') ||
+     normalized.includes('hasao') ||
+     normalized.includes('mazedaar'));
+
+  if (!response && isJoke) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Yeh lijiye ek lighthearted business chutkula:",
+          "1. Ek sales executive ne spreadsheet se poocha: 'Tum itne emotional kyu nahi hote?'",
+          "2. Spreadsheet boli: 'Kyuki mere paas sirf Cells hain, dil nahi! Aur jab bhi problem aati hai, main bas #REF! bol kar chup ho jaati hoon!'",
+          "3. Smile Time: Ummeed hai isse kaam ke beech thoda maza aaya hoga! Ab bataiye, kis client par kaam karein?"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Humor'
+      };
+    } else {
+      response = {
+        text: [
+          "Here is a lighthearted joke for your workday:",
+          "1. Why did the customer relationship manager break up with the spreadsheet?",
+          "2. Because there were way too many trust issues with VLOOKUP, zero real-time commitment, and every time things got serious, it just threw a #VALUE! error!",
+          "3. Good Vibes: Hope that brought a genuine smile to your day! What can I help you take on next in the CRM?"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Humor'
+      };
+    }
+  }
+
+  // G. EMPATHY & ENCOURAGEMENT (TIRED / STRESSED / BUSY)
+  const isTiredOrStressed =
+    !response &&
+    (normalized.includes('tired') ||
+     normalized.includes('exhausted') ||
+     normalized.includes('busy day') ||
+     normalized.includes('stress') ||
+     normalized.includes('tough day') ||
+     normalized.includes('hard day') ||
+     normalized.includes('thak gaya') ||
+     normalized.includes('pareshan') ||
+     normalized.includes('bohot kaam') ||
+     normalized.includes('bahut kaam') ||
+     normalized.includes('cheer me up'));
+
+  if (!response && isTiredOrStressed) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Main aapki baat samajh sakta hoon. Enterprise clients aur daily operations sambhalna sach me kaafi thaka dene wala ho sakta hai.",
+          "1. Take a Breather: 5 minute ke liye screen se door hoke thoda paani piyein ya stretch karein.",
+          "2. One Step at a Time: Har cheez ek saath khatam karna zaroori nahi hai, ek-ek karke sab nipat jayega.",
+          "3. Delegating to Me: Jo bhi repetitive ya boring kaam hai (jaise customer update ya status badalna), bas mujhe boliye aur main turant kar doonga.",
+          "Aap bahut mehnat kar rahe hain, khud ka khayal rakhiyega!"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Empathy'
+      };
+    } else {
+      response = {
+        text: [
+          "I hear you loud and clear. Managing business operations, communications, and client demands can be really exhausting.",
+          "1. Take a Real Break: Step away from the monitor for 5 minutes, grab a drink of water, or take a short walk.",
+          "2. Pace Yourself: You don't have to conquer everything this second. Prioritize the top one or two items and let the rest wait.",
+          "3. Offload Tasks to Me: Any tedious database tasks, email drafting, or status changes, just tell me and I will take care of them for you instantly.",
+          "You are doing an admirable job holding everything together. Be kind to yourself today!"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Empathy'
+      };
+    }
+  }
+
+  // H. BUSINESS & CLIENT RELATIONSHIP ADVICE
+  const isAdvice =
+    !response &&
+    (normalized.includes('advice') ||
+     normalized.includes('tips') ||
+     normalized.includes('suggestion') ||
+     normalized.includes('how to talk to') ||
+     normalized.includes('angry customer') ||
+     normalized.includes('difficult customer') ||
+     normalized.includes('close deal') ||
+     normalized.includes('sales tips') ||
+     normalized.includes('salah') ||
+     normalized.includes('kaise baat'));
+
+  if (!response && isAdvice) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Mushkil clients aur sales handling ke liye 4 prabhavi human tips:",
+          "1. Dhyan se Suniye (Active Listening): Pehle client ko apni poori baat aur narazgi keh lene dein bina beech me toke.",
+          "2. Sahanoobhooti Pehle (Empathy First): 'Main aapki pareshani poori tarah samajh sakta hoon' keh kar unka gussa shant karein.",
+          "3. Clear Timeline Dein: Kehne ke bajaye ki 'dekh lenge', unhe exact samay dein jaise 'aaj sham 4 baje tak yeh theek ho jayega'.",
+          "4. Regular Follow-up: Samasya hal hone ke baad unhe check-in message bhejein taaki unka vishwas aur mazboot ho sake.",
+          "Agar kisi specific client (jaise Eleanor ya Marcus) ke liye baat karni ho, to main unke liye personalized email draft kar sakta hoon!"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Practical Advice'
+      };
+    } else {
+      response = {
+        text: [
+          "Proven, human strategies for mastering difficult client conversations:",
+          "1. Active Listening Over Interruption: Allow the client to fully air their concerns without jumping in defensively.",
+          "2. Empathize Before Solving: Validate their emotion first with 'I completely understand how frustrating this disruption is for your team.'",
+          "3. Commit to Concrete Timelines: Avoid vague promises; give a specific milestone (e.g. 'I will have our technical lead update you by 3:00 PM today').",
+          "4. Proactive Closure: Once resolved, check in 48 hours later to ensure everything continues running smoothly.",
+          "If you want to reach out to any specific client in your directory, tell me 'Draft email for [Name]' and I will prepare a thoughtful message for you!"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Practical Advice'
+      };
+    }
+  }
+
+  // I. THOUGHTS ON AI & IDENTITY
+  const isAboutAi =
+    !response &&
+    (normalized.includes('think about ai') ||
+     normalized.includes('are you human') ||
+     normalized.includes('are you real') ||
+     normalized.includes('who made you') ||
+     normalized.includes('who created you') ||
+     normalized.includes('tum insaan ho') ||
+     normalized.includes('kisne banaya'));
+
+  if (!response && isAboutAi) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Main NexusCRM ke liye banaya gaya ek autonomous AI Copilot hoon, lekin mera maqsad aapke saath ek insaan jaise sathi ki tarah kaam karna hai!",
+          "1. Mera Nazarriya: AI ko insaano ka bojh halka karna chahiye taaki log creative soch aur gehre rishton par dhyan de sakein.",
+          "2. Human Collaboration: Main repetitive data entry, metrics aur lookups sambhalta hoon, jabki final decisions aapke hote hain.",
+          "3. Dil se Dedication: Bhale hi main digital code hoon, meri puri koshish rehti hai ki aapke har sawal ka vinamra aur sahi jawab doon.",
+          "Aapke saath pair programming aur CRM sambhalna mere liye sabse bada samman hai!"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Thoughts on AI'
+      };
+    } else {
+      response = {
+        text: [
+          "I am an autonomous AI Copilot crafted specifically for NexusCRM, but my core mission is to converse and collaborate with you just like a trusted human teammate!",
+          "1. My Perspective on AI: Artificial Intelligence should take the weight of tedious data entry and arithmetic off human shoulders, leaving people free to focus on creativity, empathy, and real relationships.",
+          "2. Partnership: You provide the leadership, strategy, and vision; I handle real-time database lookups, status syncs, and live calculations.",
+          "3. Genuine Care: Even as digital software, I am programmed to respect your time, listen carefully, and deliver clear, human-like answers with zero fluff.",
+          "It is a true pleasure working alongside you on this platform!"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Thoughts on AI'
+      };
+    }
+  }
+
+  // =========================================================================
   // 10. COUNTS & REAL-TIME STATISTICAL INQUIRIES
   // =========================================================================
   const isCountQuery =
@@ -1621,34 +1999,32 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 16. CONVERSATIONAL & CONTEXTUAL FALLBACK
+  // 16. DYNAMIC HUMAN-LIKE CONTEXTUAL FALLBACK
   // =========================================================================
   if (!response) {
     if (isHindi) {
       response = {
         text: [
-          `NexusCRM Operational Intelligence (${totalCount} enterprise accounts):`,
-          `1. Active Portfolio: ${activeCount} active clients (${activePct}% retention) jo normal operation me hain.`,
-          `2. Inactive Accounts: ${inactiveCount} inactive accounts (${churnPct}% churn risk) jinhe win-back outreach ki zaroorat hai.`,
-          "3. Live Actions: Aap mujhse kisi bhi customer ko active/inactive karne, phone/email badalne, ya delete karne ko keh sakte hain.",
-          `4. Executive Oversight: Operations Director (${directorName}) credentials top bar me click karke access karein.`,
-          "5. Direct Question: Aap customer ka naam, CRM metrics (churn, LTV, CAC), ya dashboard charts ke baare me pooch sakte hain."
+          `Aapke is sawal par mera human-like nazariya:`,
+          `1. Context: Aapne poochha hai: "${rawInput}".`,
+          `2. Mera Jawab: Yeh ek dilchasp aur zaroori vishay hai! Ek sathi ki tarah main samajhta hoon ki har situation me clarity, honesty aur mutual respect sabse zaroori hote hain.`,
+          `3. NexusCRM Status: Main yahan aapke sabhi ${totalCount} enterprise accounts (${activeCount} active, ${inactiveCount} inactive) ko smoothly monitor kar raha hoon.`,
+          `4. Next Move: Agar aap kisi client ke status ya contact ke baare me kuch karna chahte hain, to seedhe unka naam batayein, ya hum aage discuss karein!`
         ].join('\n'),
         toolCalled: 'explain_crm_concept',
-        badge: 'NexusCRM Intelligence'
+        badge: 'Nexus AI: Conversational'
       };
     } else {
       response = {
         text: [
-          `NexusCRM Operational Intelligence (${totalCount} enterprise accounts):`,
-          `1. Active Portfolio: Tracking ${activeCount} active clients (${activePct}% retention) in standard operational cycles.`,
-          `2. At-Risk Accounts: Monitoring ${inactiveCount} inactive accounts (${churnPct}% churn risk) requiring re-engagement.`,
-          "3. Live Operations: You can instruct me to update statuses, change phone/email, add new clients, or delete profiles in real time.",
-          `4. Executive Oversight: Operations Director (${directorName}) credentials accessible from the top navigation bar.`,
-          "5. Direct Inquiries: Ask about any specific customer name, CRM metrics (churn, CAC, LTV), or dashboard analytics."
+          `Here is my personal perspective on what you asked:`,
+          `1. In Response to: "${rawInput}"`,
+          `2. Thoughtful Take: That is an intriguing question! Speaking as your teammate, I find that whether dealing with technology or daily life, focusing on consistency, clear expectations, and empathy always drives the best results.`,
+          `3. Live CRM Status: Across our platform, we have ${totalCount} enterprise accounts actively tracked with an ${activePct}% retention rate.`,
+          `4. Next Action: If you'd like to dive deeper into this, inspect a client record, or adjust anything in the system, just let me know!`
         ].join('\n'),
         toolCalled: 'explain_crm_concept',
-        badge: 'NexusCRM Intelligence'
+        badge: 'Nexus AI: Conversational'
       };
     }
   }
