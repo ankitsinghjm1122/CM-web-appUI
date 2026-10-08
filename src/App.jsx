@@ -6,6 +6,7 @@ import DashboardScreen from './components/screens/DashboardScreen';
 import CustomerListScreen from './components/screens/CustomerListScreen';
 import CustomerFormModal from './components/screens/CustomerFormModal';
 import CustomerProfileModal from './components/screens/CustomerProfileModal';
+import OperationsDirectorModal from './components/screens/OperationsDirectorModal';
 import SettingsScreen from './components/screens/SettingsScreen';
 import CopilotDrawer from './components/copilot/CopilotDrawer';
 
@@ -64,6 +65,9 @@ export default function App() {
 
       {/* Customer Full Profile Modal (opened by clicking any customer photo) */}
       <CustomerProfileModal onEditCustomer={handleOpenEditCustomer} />
+
+      {/* Operations Director Executive Profile Modal (opened by clicking Operations Director photo) */}
+      <OperationsDirectorModal />
 
       {/* Autonomous AI Copilot Drawer */}
       <CopilotDrawer />

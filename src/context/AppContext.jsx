@@ -52,14 +52,24 @@ export function AppProvider({ children }) {
   // 3. User Profile State (for Settings page)
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem('crm_profile');
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          ...parsed,
+          role: 'Operations Director'
+        };
+      } catch (e) {
+        console.error(e);
+      }
+    }
     return {
       name: 'Alex Morgan',
       email: 'alex.morgan@nexuscrm.io',
-      role: 'VP of Customer Success',
+      role: 'Operations Director',
       phone: '+1 (555) 019-2834',
       company: 'Nexus Global Technologies',
-      bio: 'Leading customer growth, onboarding workflows, and operational efficiency.',
+      bio: 'Leading customer growth, onboarding workflows, and operational efficiency across all client accounts.',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     };
   });
@@ -122,7 +132,18 @@ export function AppProvider({ children }) {
     setProfileCustomer(null);
   };
 
-  // 6. Active Screen Navigation State
+  // 6. Operations Director Profile Modal State
+  const [isDirectorProfileOpen, setIsDirectorProfileOpen] = useState(false);
+
+  const openDirectorProfile = () => {
+    setIsDirectorProfileOpen(true);
+  };
+
+  const closeDirectorProfile = () => {
+    setIsDirectorProfileOpen(false);
+  };
+
+  // 7. Active Screen Navigation State
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'customers' | 'settings'
 
   // 6. Dynamically Calculated Metrics
@@ -199,7 +220,10 @@ export function AppProvider({ children }) {
         monthlyChartData,
         profileCustomer,
         openCustomerProfile,
-        closeCustomerProfile
+        closeCustomerProfile,
+        isDirectorProfileOpen,
+        openDirectorProfile,
+        closeDirectorProfile
       }}
     >
       {children}

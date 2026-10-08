@@ -18,12 +18,14 @@ import {
 export default function AppLayout({ children, onOpenAddCustomer }) {
   const {
     user,
+    profile,
     logout,
     activeTab,
     setActiveTab,
     theme,
     toggleTheme,
-    stats
+    stats,
+    openDirectorProfile
   } = useApp();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -151,19 +153,32 @@ export default function AppLayout({ children, onOpenAddCustomer }) {
 
             {/* Mobile Footer / User */}
             <div className="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-4">
-              <div className="flex items-center gap-3">
-                <img
-                  src={user?.avatar}
-                  alt={user?.name}
-                  className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700"
-                />
-                <div className="truncate">
-                  <p className="text-sm font-semibold truncate text-slate-900 dark:text-white">
-                    {user?.name}
-                  </p>
-                  <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openDirectorProfile();
+                }}
+                className="flex items-center gap-3 w-full text-left p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer group"
+                title="Click to view Operations Director profile"
+              >
+                <div className="relative shrink-0">
+                  <img
+                    src={user?.avatar || profile?.avatar}
+                    alt={user?.name || profile?.name}
+                    className="w-10 h-10 rounded-full object-cover border-2 border-indigo-500/40 group-hover:scale-105 transition-transform"
+                  />
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900 animate-pulse" />
                 </div>
-              </div>
+                <div className="truncate flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                    {user?.name || profile?.name}
+                  </p>
+                  <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium truncate">
+                    {user?.role || profile?.role || 'Operations Director'}
+                  </p>
+                </div>
+              </button>
 
               <button
                 onClick={logout}
@@ -269,25 +284,36 @@ export default function AppLayout({ children, onOpenAddCustomer }) {
 
           {/* User Profile Info & Logout */}
           <div className="flex items-center justify-between px-2 py-1.5">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <img
-                src={user?.avatar}
-                alt={user?.name}
-                className="w-9 h-9 rounded-full object-cover ring-2 ring-indigo-500/30"
-              />
-              <div className="min-w-0">
-                <p className="text-xs font-bold truncate text-slate-900 dark:text-white">
-                  {user?.name}
-                </p>
-                <p className="text-[11px] text-slate-500 truncate">{user?.role}</p>
+            <button
+              type="button"
+              onClick={openDirectorProfile}
+              id="sidebar-director-profile-btn"
+              className="flex items-center gap-2.5 min-w-0 text-left p-1 -m-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all cursor-pointer group focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              title="Click to view Operations Director profile"
+            >
+              <div className="relative shrink-0">
+                <img
+                  src={user?.avatar || profile?.avatar}
+                  alt={user?.name || profile?.name}
+                  className="w-9 h-9 rounded-full object-cover ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 group-hover:scale-105 transition-all shadow-sm"
+                />
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900 animate-pulse" />
               </div>
-            </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold truncate text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  {user?.name || profile?.name}
+                </p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate">
+                  {user?.role || profile?.role || 'Operations Director'}
+                </p>
+              </div>
+            </button>
 
             <button
               onClick={logout}
               id="sidebar-logout-btn"
               title="Sign Out"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0 ml-1"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -330,6 +356,32 @@ export default function AppLayout({ children, onOpenAddCustomer }) {
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Live System</span>
             </div>
+
+            {/* Clickable Operations Director Profile Chip */}
+            <button
+              type="button"
+              onClick={openDirectorProfile}
+              id="topbar-director-profile-btn"
+              className="flex items-center gap-2 py-1 pl-1.5 pr-2.5 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200/80 dark:border-slate-700/80 transition-all cursor-pointer group"
+              title="Click to view Operations Director profile"
+            >
+              <div className="relative">
+                <img
+                  src={user?.avatar || profile?.avatar}
+                  alt={user?.name || profile?.name}
+                  className="w-7 h-7 rounded-full object-cover ring-1 ring-indigo-500/40 group-hover:scale-105 transition-transform"
+                />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900 animate-pulse" />
+              </div>
+              <div className="text-left hidden lg:block">
+                <p className="text-[11px] font-bold text-slate-900 dark:text-white leading-tight">
+                  {user?.name || profile?.name}
+                </p>
+                <p className="text-[9px] text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider">
+                  {user?.role || profile?.role || 'Operations Director'}
+                </p>
+              </div>
+            </button>
           </div>
         </div>
 
