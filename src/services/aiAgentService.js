@@ -185,6 +185,22 @@ export async function processCopilotMessage(userInput, context) {
     newThisMonth: Math.max(1, Math.round(totalCount * 0.3))
   };
 
+  const today = new Date();
+  const addedTodayCustomers = customerPool.filter(c => {
+    if (!c.createdAt) return false;
+    const d = new Date(c.createdAt);
+    return d.toDateString() === today.toDateString();
+  });
+  const addedTodayCount = addedTodayCustomers.length;
+
+  const hasCountKeywords =
+    /\b(how many|how much|count|total count|sankhya|kitne|kitna|kitni|number of)\b/i.test(normalized) ||
+    normalized.includes('customers count') ||
+    normalized.includes('accounts count') ||
+    normalized.includes('kitne customer') ||
+    normalized.includes('kitne clients') ||
+    (normalized.includes('how') && (normalized.includes('many') || normalized.includes('much')));
+
   const directorName = (profile?.name || user?.name || 'Alex Morgan').trim();
   const directorRole = profile?.role || user?.role || 'Operations Director';
   const directorEmail = profile?.email || user?.email || 'alex.morgan@nexuscrm.io';
@@ -625,7 +641,17 @@ export async function processCopilotMessage(userInput, context) {
   // =========================================================================
   const isHowToAdd =
     !response &&
-    (normalized.includes('how to add') || normalized.includes('how do i add') || normalized.includes('kaise add') || normalized.includes('kaise jodein') || (normalized.includes('add') && (normalized.includes('kaise') || normalized.includes('how') || normalized.includes('process') || normalized.includes('steps'))));
+    !hasCountKeywords &&
+    (/\bhow\s+(to|do\s+i|can\s+i)\s+(add|create|insert|register|onboard)\b/i.test(normalized) ||
+     normalized.includes('kaise add') ||
+     normalized.includes('kaise jodein') ||
+     normalized.includes('kaise create') ||
+     normalized.includes('add karne ke steps') ||
+     normalized.includes('add karne ka tarika') ||
+     normalized.includes('add karne ka tareeqa') ||
+     normalized.includes('steps to add') ||
+     normalized.includes('process to add') ||
+     (normalized.startsWith('how to') && normalized.includes('add')));
 
   if (!response && isHowToAdd) {
     if (isHindi) {
@@ -657,7 +683,16 @@ export async function processCopilotMessage(userInput, context) {
 
   const isHowToUpdate =
     !response &&
-    (normalized.includes('how to update') || normalized.includes('how to edit') || normalized.includes('how do i update') || normalized.includes('kaise update') || normalized.includes('kaise badlein') || (normalized.includes('update') && (normalized.includes('kaise') || normalized.includes('how'))));
+    !hasCountKeywords &&
+    (/\bhow\s+(to|do\s+i|can\s+i)\s+(update|edit|modify|change)\b/i.test(normalized) ||
+     normalized.includes('kaise update') ||
+     normalized.includes('kaise badlein') ||
+     normalized.includes('kaise change') ||
+     normalized.includes('update karne ke steps') ||
+     normalized.includes('update karne ka tarika') ||
+     normalized.includes('steps to update') ||
+     normalized.includes('process to update') ||
+     (normalized.startsWith('how to') && normalized.includes('update')));
 
   if (!response && isHowToUpdate) {
     if (isHindi) {
@@ -689,7 +724,15 @@ export async function processCopilotMessage(userInput, context) {
 
   const isHowToDelete =
     !response &&
-    (normalized.includes('how to delete') || normalized.includes('how to remove') || normalized.includes('kaise delete') || normalized.includes('kaise hatayein') || (normalized.includes('delete') && (normalized.includes('kaise') || normalized.includes('how'))));
+    !hasCountKeywords &&
+    (/\bhow\s+(to|do\s+i|can\s+i)\s+(delete|remove|purge|erase)\b/i.test(normalized) ||
+     normalized.includes('kaise delete') ||
+     normalized.includes('kaise hatayein') ||
+     normalized.includes('delete karne ke steps') ||
+     normalized.includes('delete karne ka tarika') ||
+     normalized.includes('steps to delete') ||
+     normalized.includes('process to delete') ||
+     (normalized.startsWith('how to') && normalized.includes('delete')));
 
   if (!response && isHowToDelete) {
     if (isHindi) {
@@ -1034,12 +1077,50 @@ export async function processCopilotMessage(userInput, context) {
     !response &&
     !normalized.includes('churn') &&
     !normalized.includes('retention') &&
-    (/\b(how many|count|kitne|kitna|kitni|sankhya|number of)\b/i.test(normalized) ||
+    (hasCountKeywords ||
      normalized.includes('active customers count') ||
-     normalized.includes('inactive customers count'));
+     normalized.includes('inactive customers count') ||
+     (normalized.includes('added') && (normalized.includes('today') || normalized.includes('aaj') || normalized.includes('new'))) ||
+     (normalized.includes('new') && (normalized.includes('customer') || normalized.includes('client'))));
 
   if (!response && isCountQuery) {
-    if (hasActiveCue) {
+    const isAskingAboutToday =
+      normalized.includes('today') ||
+      normalized.includes('aaj') ||
+      normalized.includes('24 hour') ||
+      normalized.includes('24 hours');
+
+    const isAskingAboutNewOrAdded =
+      normalized.includes('new') ||
+      normalized.includes('naya') ||
+      normalized.includes('nayi') ||
+      normalized.includes('naye') ||
+      normalized.includes('added') ||
+      normalized.includes('add') ||
+      normalized.includes('onboard') ||
+      normalized.includes('jode') ||
+      normalized.includes('joda');
+
+    if (isAskingAboutToday && isAskingAboutNewOrAdded) {
+      if (addedTodayCount > 0) {
+        const names = addedTodayCustomers.map(c => `${c.name} (${c.company})`).join(', ');
+        response = {
+          text: isHindi
+            ? `Dost, aaj hamari directory me ${addedTodayCount} naye customer add hue hain: ${names}! Is mahine kul ${safeStats.newThisMonth} naye accounts onboard hue hain, aur total directory me ${totalCount} enterprise accounts hain.`
+            : `Hey friend, we have ${addedTodayCount} customer(s) newly added today: ${names}! Overall during this monthly cycle, we've onboarded ${safeStats.newThisMonth} new client organizations across our ${totalCount} total accounts.`,
+          toolCalled: 'get_portfolio_summary',
+          badge: `Added Today: ${addedTodayCount}`
+        };
+      } else {
+        response = {
+          text: isHindi
+            ? `Dost, aaj abhi tak koi naya customer add nahi hua hai (aaj ka count 0 hai). Lekin is mahine kul ${safeStats.newThisMonth} naye enterprise clients onboard hue hain, aur directory me kul ${totalCount} accounts chal rahe hain. Agar aap kisi ko add karna chahte hain, to bas mujhe boliye jaise "Add customer Sarah at Netflix" aur main turant jod doonga!`
+            : `Hey friend, no new customers have been added today yet (today's count is 0). However, we have onboarded ${safeStats.newThisMonth} new client organizations during this monthly cycle, bringing our total to ${totalCount} enterprise accounts. If you'd like to add a new client right now, just say "Add customer [Name] at [Company]" and I'll add them instantly!`,
+          toolCalled: 'get_portfolio_summary',
+          badge: 'Added Today: 0'
+        };
+      }
+    } else if (hasActiveCue) {
       response = {
         text: isHindi
           ? `Dost, aapke paas abhi ${activeCount} active customer accounts hain, jo kul ${totalCount} accounts ka ${activePct}% hissa hai. Kisi account ko inspect karna hai?`
@@ -1058,8 +1139,8 @@ export async function processCopilotMessage(userInput, context) {
     } else if (normalized.includes('new') || normalized.includes('naya') || normalized.includes('this month') || normalized.includes('is mahine')) {
       response = {
         text: isHindi
-          ? `Is mahine ${safeStats.newThisMonth} naye enterprise clients onboard hue hain mere dost!`
-          : `We've had ${safeStats.newThisMonth} new client organizations onboarded during the current monthly cycle, friend!`,
+          ? `Is mahine ${safeStats.newThisMonth} naye enterprise clients onboard hue hain mere dost! Aaj abhi tak ${addedTodayCount} customer add hue hain.`
+          : `We've had ${safeStats.newThisMonth} new client organizations onboarded during the current monthly cycle, and ${addedTodayCount} added today, friend!`,
         toolCalled: 'get_portfolio_summary',
         badge: `New: ${safeStats.newThisMonth}`
       };
