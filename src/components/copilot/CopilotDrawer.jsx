@@ -28,7 +28,7 @@ export default function CopilotDrawer() {
       id: 'msg-welcome',
       sender: 'agent',
       text: [
-        "Hey there, friend! I am your AI partner and companion here in NexusCRM.",
+        "Hey there! I am your AI partner and copilot here in NexusCRM.",
         "Whenever you need help checking on a customer, updating records, calculating stats, or just talking through ideas, I've got your back.",
         "",
         "What can I help you with today?"
@@ -120,7 +120,7 @@ export default function CopilotDrawer() {
           </div>
           <span>Nexus AI Copilot</span>
           <span className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-white/20 text-white uppercase tracking-wider">
-            Friend &amp; Agent
+            Live AI Copilot
           </span>
         </button>
       )}
