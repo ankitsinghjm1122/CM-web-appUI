@@ -953,13 +953,13 @@ export async function processCopilotMessage(userInput, context) {
   if (!response && isHelpRequest) {
     if (isHindi) {
       response = {
-        text: "Arre bilkul! Main hamesha aapki madad ke liye yahan hoon. Bataiye kya karna hai? Kisi customer ki contact details dekhni ho, status badalna ho, naya client jodna ho, ya CRM ke metrics samajhne ho—bas bejhijhak bataiye, main turant sab sambhal loonga!",
+        text: "Bilkul! Main aapke poore CRM operations me practical madad ke liye tayyar hoon. Bataiye kya karna hai? Kisi customer ki contact details dekhni ho, status active ya inactive karna ho, naya client jodna ho, ya churn aur pipeline metrics samajhne ho—bas bejhijhak batayein, main turant sab sambhal loonga!",
         toolCalled: 'explain_crm_concept',
         badge: 'Nexus AI: Always Here to Help'
       };
     } else {
       response = {
-        text: "Always! What do you need a hand with? Whether you want to check on a customer's phone or email, update an account status, add someone new, break down our churn numbers, or draft an outreach note, I've got your back. Just tell me what's on your mind!",
+        text: "I am ready to assist across all your CRM operations. Whether you need to look up customer contact details, update an account status, add someone new, break down churn economics, or draft an outreach note, I am here to execute it practically for you. What is on your mind?",
         toolCalled: 'explain_crm_concept',
         badge: 'Nexus AI: Always Here to Help'
       };
@@ -978,7 +978,7 @@ export async function processCopilotMessage(userInput, context) {
   if (!response && isGreeting) {
     response = {
       text: isHindi
-        ? "Namaste! Aap se baat karke bahut accha laga. Aapka din kaisa chal raha hai? Bataiye aaj CRM me main aapki kya madad karoon?"
+        ? "Namaste! Aap se connect karke bahut accha laga. Aapka din kaisa chal raha hai? Bataiye aaj CRM me main aapki kya madad karoon?"
         : "Hey there! It is wonderful to connect with you. How are you doing today? Let me know what you'd like to work on across your customer accounts, or if you just want to talk through ideas!",
       toolCalled: 'explain_crm_concept',
       badge: 'Nexus AI: Hello!'
@@ -1003,8 +1003,8 @@ export async function processCopilotMessage(userInput, context) {
   if (!response && isHowAreYou) {
     response = {
       text: isHindi
-        ? "Main bilkul badhiya aur energetic hoon, poochne ke liye dil se shukriya! Hamare sabhi enterprise accounts bilkul up-to-date chal rahe hain. Aapka din kaisa guzar raha hai?"
-        : "I am doing fantastic, thanks so much for asking! All our enterprise accounts are synced and running smoothly at 100% capacity. How is your day going so far?",
+        ? "Main bilkul badhiya aur fully operational hoon, poochne ke liye shukriya! Hamare sabhi enterprise accounts synced hain aur pipeline smooth chal rahi hai. Aapka din kaisa guzar raha hai?"
+        : "I am doing fantastic, thanks so much for asking! All our enterprise accounts are synced and running smoothly across your pipeline. How is your day going so far?",
       toolCalled: 'explain_crm_concept',
       badge: 'Nexus AI: Doing Great!'
     };
@@ -1023,8 +1023,8 @@ export async function processCopilotMessage(userInput, context) {
   if (!response && isWhatDoing) {
     response = {
       text: isHindi
-        ? "Bas yahan active hoon apne customer accounts aur metrics par nazar banaye hue aur aapka intezaar kar raha tha! Bataiye, abhi hum kis customer ya task par kaam karein?"
-        : "Right now, I am hanging out right here keeping tabs on our customer accounts and staying ready for whatever question or task you have next. What would you like to tackle?",
+        ? "Main yahan active hoon, aapke customer accounts aur metrics par nazar banaye hue aur aapke agle command ke liye ready! Bataiye, abhi hum kis customer ya task par kaam karein?"
+        : "Right now, I am actively monitoring your customer accounts and pipeline metrics, ready for your next request. What would you like to tackle across your accounts?",
       toolCalled: 'explain_crm_concept',
       badge: 'Nexus AI: Active'
     };
@@ -1051,7 +1051,7 @@ export async function processCopilotMessage(userInput, context) {
   if (!response && isGratitude) {
     response = {
       text: isHindi
-        ? "Aapka bahut-bahut shukriya! Aapki madad karke mujhe sach me khushi hoti hai. Jab bhi koi agla kaam ho ya sawal aaye, bas bejhijhak bata dijiyega."
+        ? "Aapka bahut-bahut shukriya! Aapki madad karke mujhe sach me khushi hoti hai. Jab bhi koi agla kaam ho ya sawal aaye, bas batayein."
         : "You are so very welcome! It is genuinely a pleasure collaborating with you to keep your client operations seamless. Let me know whenever anything else comes up!",
       toolCalled: 'explain_crm_concept',
       badge: 'Nexus AI: You are welcome!'
@@ -1121,8 +1121,8 @@ export async function processCopilotMessage(userInput, context) {
   if (!response && isTiredOrStressed) {
     response = {
       text: isHindi
-        ? "Main aapki baat samajh sakta hoon. Clients aur operations sambhalna sach me kaafi thaka dene wala ho sakta hai. 5 minute ka chhota sa break lijiye aur thoda paani piyein. Jo bhi repetitive data ya status badalna ho, bas mujhe bata dijiye, main turant kar doonga."
-        : "I hear you loud and clear. Managing business operations and client demands can be really exhausting. Take a quick 5-minute break, grab a drink of water, and pace yourself. If there are any tedious tasks or status updates you want off your plate, just hand them over to me!",
+        ? "Main samajh sakta hoon. Client operations aur account management me kaafi mental energy lagti hai. Chhota sa 5 minute ka break lijiye. Jo bhi repetitive data ya status updates ka kaam ho, aap seedhe mujhe de dijiye—main autonomous tareeqe se turant kar doonga. Aap zaroori strategy par focus karein."
+        : "I completely understand. Managing customer accounts and operations requires significant mental energy. Take a quick break and pace yourself. Hand any repetitive updates, status changes, or data searches over to me—I'll handle them autonomously so you can recharge.",
       toolCalled: 'explain_crm_concept',
       badge: 'Nexus AI: Empathy'
     };
@@ -1131,13 +1131,17 @@ export async function processCopilotMessage(userInput, context) {
   // H. BUSINESS & CLIENT RELATIONSHIP ADVICE (Detailed advice: points used!)
   const isAdvice =
     !response &&
+    !normalized.includes('close deal') &&
+    !normalized.includes('close deals') &&
+    !normalized.includes('objection') &&
     (normalized.includes('advice') ||
      normalized.includes('tips') ||
      normalized.includes('suggestion') ||
      normalized.includes('how to talk to') ||
      normalized.includes('angry customer') ||
      normalized.includes('difficult customer') ||
-     normalized.includes('close deal') ||
+     normalized.includes('difficult client') ||
+     normalized.includes('angry client') ||
      normalized.includes('sales tips') ||
      normalized.includes('salah') ||
      normalized.includes('kaise baat'));
@@ -1146,11 +1150,11 @@ export async function processCopilotMessage(userInput, context) {
     if (isHindi) {
       response = {
         text: [
-          "Mushkil clients aur sales handling ke liye 4 prabhavi human tips yeh rahe:",
-          "1. Dhyan se Suniye (Active Listening): Pehle client ko apni poori बात aur narazgi keh lene dein bina beech me toke.",
-          "2. Sahanoobhooti Pehle (Empathy First): 'Main aapki pareshani poori tarah samajh sakta hoon' keh kar unka gussa shant karein.",
-          "3. Clear Timeline Dein: Kehne ke bajaye ki 'dekh lenge', unhe exact samay dein jaise 'aaj sham 4 baje tak yeh theek ho jayega'.",
-          "4. Regular Follow-up: Samasya hal hone ke baad unhe check-in message bhejein taaki unka vishwas aur mazboot ho sake."
+          "Mushkil clients aur sales handling ke liye 4 prabhavi practical tips:",
+          "1. Active Listening: Pehle client ko apni poori baat aur frustration keh lene dein bina beech me toke.",
+          "2. Empathy First: 'Main aapki pareshani poori tarah samajh sakta hoon' keh kar unka gussa de-escalate karein.",
+          "3. Clear Timeline Commitment: Kehne ke bajaye ki 'dekh lenge', unhe concrete milestone dein jaise 'aaj sham 4 baje tak technical team ka solution mil jayega'.",
+          "4. Proactive Follow-up: Issue resolve hone ke 48 ghante baad check-in message bhejein taaki unka vishwas mazboot ho sake."
         ].join('\n'),
         toolCalled: 'explain_crm_concept',
         badge: 'Nexus AI: Practical Advice'
@@ -1170,25 +1174,49 @@ export async function processCopilotMessage(userInput, context) {
     }
   }
 
-  // I. THOUGHTS ON AI & IDENTITY
+  // I. THOUGHTS ON AI, GEMINI & IDENTITY
   const isAboutAi =
     !response &&
-    (normalized.includes('think about ai') ||
+    (normalized.includes('gemini') ||
+     normalized.includes('agentic') ||
+     normalized.includes('generative') ||
+     normalized.includes('think about ai') ||
      normalized.includes('are you human') ||
      normalized.includes('are you real') ||
      normalized.includes('who made you') ||
      normalized.includes('who created you') ||
+     normalized.includes('who are you') ||
+     normalized.includes('what are you') ||
+     normalized.includes('tum kaun ho') ||
      normalized.includes('tum insaan ho') ||
      normalized.includes('kisne banaya'));
 
   if (!response && isAboutAi) {
-    response = {
-      text: isHindi
-        ? "Main NexusCRM ke liye banaya gaya ek autonomous AI Copilot hoon, lekin mera maqsad aapke saath ek sacche saathi aur partner ki tarah kaam karna hai! Mera manna hai ki AI ko data entry aur boring kaam sambhalna chahiye taaki log creative soch aur gehre rishton par dhyan de sakein. Aapke saath kaam karna mere liye khushi ki baat hai."
-        : "I am an autonomous AI Copilot crafted specifically for NexusCRM, but my core mission is to converse and collaborate with you just like a trusted human teammate and partner! I believe Artificial Intelligence should take the weight of tedious data entry off human shoulders, leaving people free to focus on creativity, empathy, and real relationships. It is a genuine pleasure working alongside you!",
-      toolCalled: 'explain_crm_concept',
-      badge: 'Nexus AI: Thoughts on AI'
-    };
+    if (normalized.includes('gemini')) {
+      response = {
+        text: isHindi
+          ? "Main Google Gemini-grade conversational reasoning aur practical intelligence par chalne wala Nexus CRM Copilot hoon. Mera mission hai bilkul practical, real-world business analyst ki tarah aapse communicate karna aur aapke CRM ke har pehlu ko sambhalna—chahe pipeline velocity ho, customer churn mitigation ho, LTV/CAC optimization ho ya live directory updates. Main bina kisi generic gyaan ke bilkul actionable business insights deliver karta hoon. Bataiye, aapke customer portfolio me abhi hum kis workflow par focus karein?"
+          : "I operate on Google Gemini-grade reasoning and practical conversational intelligence as your dedicated Nexus CRM Copilot. My architecture is designed to think through real-world business challenges—focusing purely on your customer lifecycle, pipeline velocity, churn mitigation, and portfolio analytics. I combine conversational depth with direct autonomous execution in your CRM database. What client account or pipeline metric would you like to review today?",
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Gemini Intelligence'
+      };
+    } else if (normalized.includes('agentic') || normalized.includes('generative')) {
+      response = {
+        text: isHindi
+          ? "Nexus Copilot dono ka ek practical hybrid hai. Ek taraf generative AI ki tarah main natural language samajhta hoon, human-like reasoning ke sath context analyze karta hoon aur persuasive customer emails draft karta hoon. Dusri taraf ek autonomous agentic AI ki tarah main live CRM database me direct actions execute karta hoon—jaise customer status badalna, naye accounts onboard karna, aur churn metrics calculate karna. Yeh combination enterprise CRM operations ke liye sabse practical aur powerful setup hai."
+          : "Nexus Copilot is a practical synthesis of both generative and agentic AI. As generative AI, I process natural language nuances, analyze business context with human-like reasoning, and draft tailored client communications. As an autonomous agentic AI, I directly execute actions against your live CRM database—updating customer records, onboarding new organizations, and recalculating churn metrics in real time. For enterprise CRM operations, this gives you practical, end-to-end execution.",
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Agentic Architecture'
+      };
+    } else {
+      response = {
+        text: isHindi
+          ? "Main NexusCRM ka autonomous Copilot hoon, jo Google Gemini-grade intelligence aur practical business logic ke sath banaya gaya hai. Mera pura focus strictly aapke CRM ecosystem—customers, pipeline, churn prevention aur client relationship management—par hai. Main data entry aur routine operational tasks ko automate karta hoon taaki aap high-value strategy aur customer growth par dhyan de sakein. Bataiye aaj CRM me main aapki kya madad karoon?"
+          : "I am the autonomous NexusCRM Copilot, engineered with Google Gemini-grade reasoning and practical business intellect. My entire intelligence is dedicated to your CRM ecosystem—empowering your customer lifecycle, pipeline velocity, churn reduction, and account management. By automating routine operations and providing actionable data insights, I help you focus on high-impact customer relationships. How can I assist across your accounts today?",
+        toolCalled: 'explain_crm_concept',
+        badge: 'Nexus AI: Thoughts on AI'
+      };
+    }
   }
 
   // =========================================================================
@@ -1728,7 +1756,7 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // F. SALES PIPELINE (5 Stages: points used!)
-  if (!response && (normalized.includes('pipeline') || normalized.includes('sales funnel') || (normalized.includes('sales') && (normalized.includes('process') || normalized.includes('stages'))))) {
+  if (!response && !normalized.includes('velocity') && (normalized.includes('pipeline') || normalized.includes('sales funnel') || (normalized.includes('sales') && (normalized.includes('process') || normalized.includes('stages'))))) {
     if (isHindi) {
       response = {
         text: [
@@ -1759,7 +1787,7 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // G. ACQUISITION VELOCITY CHART
-  if (!response && (normalized.includes('chart') || normalized.includes('graph') || normalized.includes('velocity') || normalized.includes('acquisition chart'))) {
+  if (!response && (normalized.includes('chart') || normalized.includes('graph') || normalized.includes('acquisition chart') || (normalized.includes('velocity') && !normalized.includes('pipeline') && !normalized.includes('sales')))) {
     if (isHindi) {
       response = {
         text: `Customer Acquisition Velocity Chart pichhle 6 mahino (May se October 2026) ka live onboarding trend dikhata hai. Is mahine ${safeStats.newThisMonth} naye enterprise accounts add hue hain, aur kisi bhi point par hover karke aap us mahine ke precise numbers dekh sakte hain.`,
@@ -1771,6 +1799,457 @@ export async function processCopilotMessage(userInput, context) {
         text: `The Customer Acquisition Velocity Chart displays onboarding momentum over the last 6 months (May through October 2026). It tracks ${safeStats.newThisMonth} new client organizations added this cycle, with hover tooltips providing exact monthly counts.`,
         toolCalled: 'explain_crm_concept',
         badge: 'Analytics: Acquisition Chart'
+      };
+    }
+  }
+
+  // H. BANT LEAD QUALIFICATION FRAMEWORK
+  const isBantQuery =
+    !response &&
+    (/\bbant\b/i.test(normalized) ||
+     normalized.includes('lead qualification') ||
+     normalized.includes('qualify leads') ||
+     normalized.includes('qualification framework') ||
+     normalized.includes('lead qualify'));
+
+  if (!response && isBantQuery) {
+    if (isHindi) {
+      response = {
+        text: [
+          "BANT Lead Qualification Framework ka practical istemaal:",
+          "1. Budget (बजट): Kya client ke paas aapke software ke liye dedicated budget allocated hai ya executive business case banana padega?",
+          "2. Authority (अधिकार): Kya aap direct Economic Buyer se baat kar rahe hain jinke paas final signing power hai?",
+          "3. Need (ज़रूरत): Unka critical operational pain point kya hai aur use solve na karne par unka kitna nuksan ho raha hai?",
+          "4. Timeline (समयसीमा): Unka deployment target kab ka hai (e.g. current quarter ya next fiscal year)?",
+          "Practical Tip: Client ko interrogative feel na karayein; discovery conversation ke dauraan yeh 4 points naturally validate karein."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Framework: BANT Qualification'
+      };
+    } else {
+      response = {
+        text: [
+          "Practical Application of the BANT Lead Qualification Framework:",
+          "1. Budget: Does the prospect have dedicated capital allocated, or will an out-of-cycle executive sign-off be required?",
+          "2. Authority: Are you directly engaging the Economic Buyer who signs off on funds, or an internal evaluator?",
+          "3. Need: What is the high-impact operational pain point, and what is the real cost of doing nothing?",
+          "4. Timeline: What is their concrete target go-live date (e.g. end of quarter or next fiscal cycle)?",
+          "Practical Rule: Avoid interrogating the buyer; weave these qualification checks naturally into your discovery conversations."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Framework: BANT Qualification'
+      };
+    }
+  }
+
+  // I. MEDDIC QUALIFICATION METHODOLOGY
+  const isMeddicQuery =
+    !response &&
+    /\bmedd?ic[cp]?\b/i.test(normalized);
+
+  if (!response && isMeddicQuery) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Enterprise B2B Sales me MEDDIC Methodology ka practical framework:",
+          "1. Metrics (M): Client aapke software se measurable ROI kaise calculate karega (e.g. 25% efficiency boost).",
+          "2. Economic Buyer (E): Budget authority rakhne wala senior leader jo purchase approve karega.",
+          "3. Decision Criteria (D): Technical, financial aur security standards jinke aadhar par vendor select hoga.",
+          "4. Decision Process (D): Legal, procurement aur vendor onboarding ke exact steps aur review dates.",
+          "5. Identify Pain (I): Company ki wo core samasya jiska direct revenue ya risk impact hai.",
+          "6. Champion (C): Client organization ke andar ka trusted stakeholder jo aapke product ko internally advocate kar raha hai."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Framework: MEDDIC'
+      };
+    } else {
+      response = {
+        text: [
+          "Enterprise B2B MEDDIC Qualification Framework:",
+          "1. Metrics: The quantifiable economic impact and ROI the client expects to achieve.",
+          "2. Economic Buyer: The executive stakeholder holding discretionary budget authority.",
+          "3. Decision Criteria: The technical, vendor, and commercial standards used to evaluate options.",
+          "4. Decision Process: The internal procurement, legal, and security milestones required to close.",
+          "5. Identify Pain: The high-priority operational blocker driving the purchase urgency.",
+          "6. Champion: The trusted internal stakeholder who actively sells on your behalf when you are not in the room."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Framework: MEDDIC'
+      };
+    }
+  }
+
+  // J. NET REVENUE RETENTION (NRR) & EXPANSION
+  const isNrrQuery =
+    !response &&
+    (/\bnrr\b/i.test(normalized) ||
+     normalized.includes('net revenue retention') ||
+     /\bgrr\b/i.test(normalized) ||
+     normalized.includes('gross revenue retention') ||
+     normalized.includes('expansion revenue'));
+
+  if (!response && isNrrQuery) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Net Revenue Retention (NRR) ki practical jankari:",
+          "1. Definition: Yeh batata hai ki pichhle saal ke existing customers se recurring revenue kitna badha ya ghata, naye acquisitions ko count kiye bina.",
+          "2. Formula: (Starting ARR + Expansion - Contraction - Churn) / (Starting ARR) guna 100.",
+          "3. Benchmark: Top SaaS companies me NRR 115% se 130% hota hai, jiska matlab hai ki business existing clients se organically grow kar raha hai.",
+          "4. Significance: Existing client ko expand karna naya customer acquire karne se 5 guna sasta hota hai."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Metrics: NRR & Growth'
+      };
+    } else {
+      response = {
+        text: [
+          "Understanding Net Revenue Retention (NRR):",
+          "1. Definition: Measures the percentage of recurring revenue retained from existing customers over a period, incorporating expansions, contractions, and churn.",
+          "2. Formula: (Starting ARR + Expansion - Contraction - Churn) / (Starting ARR) multiplied by 100.",
+          "3. Industry Benchmark: Best-in-class SaaS companies target NRR above 115% to 125%, proving that customer expansion outpaces churn.",
+          "4. Practical Advantage: Expanding revenue within existing accounts costs roughly 5 times less than acquiring brand-new logos."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Metrics: NRR & Growth'
+      };
+    }
+  }
+
+  // K. CHURN PREVENTION PLAYBOOK & AT-RISK ACCOUNTS
+  const isChurnPreventionQuery =
+    !response &&
+    (normalized.includes('prevent churn') ||
+     normalized.includes('reduce churn') ||
+     normalized.includes('stop churn') ||
+     normalized.includes('churn playbook') ||
+     normalized.includes('churn kaise rokein') ||
+     normalized.includes('churn kaise kam') ||
+     normalized.includes('at-risk') ||
+     normalized.includes('at risk account') ||
+     normalized.includes('save customer'));
+
+  if (!response && isChurnPreventionQuery) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Enterprise Churn Prevention ke 4 practical steps:",
+          "1. Telemetry aur Usage Track Karein: Weekly logins aur feature usage kam hote hi automated alert trigger karein.",
+          "2. Renewal se 90 Din Pehle Review: Contract renewal aane se pehle Executive Sponsor ke sath QBR schedule karein.",
+          "3. Proactive Intervention Play: Agar client disengaged hai, to unhe immediate tailored training aur leadership touchpoint provide karein.",
+          "4. Root Cause Feedback: Agar koi customer churn hota hai, to exit review lekar product aur onboarding gaps ko turant fix karein."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Playbook: Churn Prevention'
+      };
+    } else {
+      response = {
+        text: [
+          "Practical 4-Step Enterprise Churn Prevention Playbook:",
+          "1. Telemetry and Early Warnings: Set automated alerts for drops in weekly active logins, license usage, or open support escalations.",
+          "2. 90-Day Renewal Pre-Wiring: Conduct an Executive Business Review 90 days before contract expiry to validate ROI before renewal talks.",
+          "3. Rapid Save Interventions: For disengaged accounts, immediately deploy customer engineering to eliminate friction and re-train staff.",
+          "4. Exit Autopsies: Systematically document churn reasons (pricing, champion departure, missing features) to harden your product roadmap."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Playbook: Churn Prevention'
+      };
+    }
+  }
+
+  // L. QUARTERLY BUSINESS REVIEWS (QBR)
+  const isQbrQuery =
+    !response &&
+    (/\bqbr\b/i.test(normalized) ||
+     normalized.includes('quarterly business review') ||
+     normalized.includes('executive business review') ||
+     normalized.includes('qbr kaise'));
+
+  if (!response && isQbrQuery) {
+    if (isHindi) {
+      response = {
+        text: [
+          "High-Impact Quarterly Business Review (QBR) ka framework:",
+          "1. Business Value aur ROI Review: Pichhle 90 dino me unhone aapke software se kya business milestone hasil kiya wo show karein.",
+          "2. Mutual Goal Alignment: Agle quarter ke key objectives aur project deadlines par sahmat hon.",
+          "3. Product Roadmap Preview: Aane wale exclusive features aur enhancements unke executive leaders ke samne present karein.",
+          "4. Expansion Opportunities: Nayi teams ya departments ke liye rollout plan discuss karein."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Framework: QBR Execution'
+      };
+    } else {
+      response = {
+        text: [
+          "How to Conduct a High-Impact Quarterly Business Review (QBR):",
+          "1. Deliver Demonstrable ROI: Lead with quantifiable business outcomes achieved in the past 90 days, not raw feature usage.",
+          "2. Align on Upcoming Objectives: Document their primary company goals for the next quarter and how your platform supports them.",
+          "3. Share Strategic Roadmap: Preview upcoming features relevant to their workflow to build long-term commitment.",
+          "4. Identify Expansion Vectors: Discuss departmental rollouts, additional seat licensing, or premium modules naturally."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Framework: QBR Execution'
+      };
+    }
+  }
+
+  // M. CUSTOMER SATISFACTION METRICS (NPS, CSAT, CES)
+  const isNpsCsatQuery =
+    !response &&
+    (/\bnps\b/i.test(normalized) ||
+     normalized.includes('net promoter score') ||
+     /\bcsat\b/i.test(normalized) ||
+     normalized.includes('customer satisfaction') ||
+     /\bces\b/i.test(normalized) ||
+     normalized.includes('customer effort'));
+
+  if (!response && isNpsCsatQuery) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Customer Experience aur Satisfaction ke 3 core metrics:",
+          "1. Net Promoter Score (NPS): 0 se 10 scale par loyalty measure karta hai (Promoters 9-10, Passives 7-8, Detractors 0-6). Formula: % Promoters minus % Detractors.",
+          "2. Customer Satisfaction Score (CSAT): Kisi specific interaction ya support ticket ke baad 1 se 5 star rating ke sath instant feedback leta hai.",
+          "3. Customer Effort Score (CES): Yeh dekhta hai ki client ke liye samasya solve karwana kitna aasan ya mushkil tha.",
+          "Practical Action: Detractor feedback milne par 24 ghante ke andar direct phone call karke issue solve karein."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Metrics: NPS & CSAT'
+      };
+    } else {
+      response = {
+        text: [
+          "Core Customer Experience Metrics (NPS, CSAT, CES):",
+          "1. Net Promoter Score (NPS): Measures long-term brand loyalty on a 0-10 scale (Promoters 9-10, Passives 7-8, Detractors 0-6). Calculated as % Promoters minus % Detractors.",
+          "2. Customer Satisfaction (CSAT): Transactional rating gathered immediately after a specific interaction or support resolution.",
+          "3. Customer Effort Score (CES): Evaluates how easy or friction-free it was for the client to resolve their request.",
+          "Practical Rule: Contact Detractors within 24 hours of receiving survey responses; rapid personal outreach converts 40% into advocates."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Metrics: NPS & CSAT'
+      };
+    }
+  }
+
+  // N. CUSTOMER ONBOARDING & TIME-TO-VALUE (TTV)
+  const isOnboardingQuery =
+    !response &&
+    (normalized.includes('customer onboarding') ||
+     normalized.includes('client onboarding') ||
+     normalized.includes('onboarding process') ||
+     normalized.includes('onboarding kaise') ||
+     normalized.includes('time to value') ||
+     normalized.includes('ttv'));
+
+  if (!response && isOnboardingQuery) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Enterprise Customer Onboarding aur Time-to-Value (TTV) Strategy:",
+          "1. Discovery to Kickoff Handoff: Sales team se sabhi customer requirements aur expectations Customer Success team ko transfer karein.",
+          "2. Mutual Action Plan (MAP): Dono teams ke beech 30-day timeline aur clear milestones define karein.",
+          "3. First 'Aha' Moment: Pehle 7 se 14 dino ke andar client ko product ki core value deliver karein taaki unka adoption pakka ho sake.",
+          "4. Success Celebration: Onboarding complete hone par executive sponsors ko completion summary aur initial ROI report bhejein."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Strategy: Customer Onboarding'
+      };
+    } else {
+      response = {
+        text: [
+          "Best Practices for Customer Onboarding and Time-to-Value (TTV):",
+          "1. Seamless Sales-to-Success Handoff: Ensure zero repeat questioning; transfer all technical requirements and stakeholder context internally.",
+          "2. Mutual Action Plan (MAP): Establish a shared 30-day implementation calendar with assigned owners on both sides.",
+          "3. Accelerate First Value: Guide users to their primary 'Aha!' milestone within the first 14 days to lock in organizational momentum.",
+          "4. Executive Milestone Sign-Off: Send a formal onboarding completion summary showcasing early adoption wins to the Economic Buyer."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Strategy: Customer Onboarding'
+      };
+    }
+  }
+
+  // O. UPSELLING & CROSS-SELLING IN CRM
+  const isUpsellingQuery =
+    !response &&
+    (normalized.includes('upsell') ||
+     normalized.includes('upselling') ||
+     normalized.includes('cross sell') ||
+     normalized.includes('cross-sell') ||
+     normalized.includes('cross selling') ||
+     normalized.includes('expansion strategy'));
+
+  if (!response && isUpsellingQuery) {
+    if (isHindi) {
+      response = {
+        text: [
+          "CRM me Upselling aur Cross-selling ki practical guidelines:",
+          "1. Upselling: Client ko unke maujooda plan se higher tier, zyada user seats, ya premium SLA par upgrade karwana.",
+          "2. Cross-selling: Client ko unke primary software ke sath koi complementary module ya analytics add-on provide karna.",
+          "3. Sahi Timing: Kabhi bhi support issues ya open tickets ke dauraan upsell na karein; hamesha unke kisi successful outcome ke baad pitch karein.",
+          "4. Value-Based Approach: Pricing feature ke aadhar par nahi, balki unke business cost reduction ya revenue uplift ke aadhar par frame karein."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Strategy: Upsell & Expansion'
+      };
+    } else {
+      response = {
+        text: [
+          "Practical Rules for Upselling and Cross-Selling:",
+          "1. Upselling: Upgrading an existing account to a higher subscription tier, increased user seats, or enterprise SLAs.",
+          "2. Cross-selling: Introducing complementary product modules or services that expand functionality for adjacent teams.",
+          "3. The Golden Rule of Timing: Never pitch expansions when an account has unresolved support tickets; pitch immediately after a verified ROI milestone.",
+          "4. Value-Framed Positioning: Frame upgrades around organizational efficiency and risk mitigation rather than software feature tiers."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Strategy: Upsell & Expansion'
+      };
+    }
+  }
+
+  // P. PIPELINE VELOCITY & SALES VELOCITY
+  const isPipelineVelocityQuery =
+    !response &&
+    (normalized.includes('pipeline velocity') ||
+     normalized.includes('sales velocity') ||
+     (normalized.includes('velocity') && normalized.includes('sales')) ||
+     normalized.includes('win rate') ||
+     normalized.includes('conversion rate'));
+
+  if (!response && isPipelineVelocityQuery) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Sales Pipeline Velocity ka practical formula aur levers:",
+          "1. Core Formula: Velocity = (Opportunities ki Sankhya * Win Rate * Average Deal Size) / (Sales Cycle ka Samay).",
+          "2. Win Rate Badhana: Unqualified leads ko shuru me hi disqualify karein taaki team high-probability deals par focus kar sake.",
+          "3. Cycle Time Kam Karna: Mutual Action Plan aur clear timelines dekar decision delay ko rokein.",
+          "4. Practical Impact: Agar win rate 5% badhe aur sales cycle 10 din kam ho, to annualized revenue 25% se zyada grow kar sakta hai."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Strategy: Pipeline Velocity'
+      };
+    } else {
+      response = {
+        text: [
+          "Understanding and Accelerating Pipeline Velocity:",
+          "1. The Core Equation: Pipeline Velocity = (Number of Qualified Opportunities * Win Rate * Average Deal Size) / (Sales Cycle Length).",
+          "2. Maximizing Win Rates: Ruthlessly disqualify low-fit prospects early so reps spend bandwidth only on high-conversion deals.",
+          "3. Compressing Sales Cycles: Implement structured mutual action plans and define exact closing milestones with decision-makers.",
+          "4. Operational Leverage: A 5% improvement in win rate combined with a 10-day reduction in sales cycle often yields a 25%+ surge in annual revenue."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Strategy: Pipeline Velocity'
+      };
+    }
+  }
+
+  // Q. SUPPORT SLAS & ESCALATIONS
+  const isSlaQuery =
+    !response &&
+    (/\bslas?\b/i.test(normalized) ||
+     normalized.includes('service level agreement') ||
+     normalized.includes('escalation') ||
+     normalized.includes('support ticket'));
+
+  if (!response && isSlaQuery) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Enterprise CRM Support SLAs aur Escalations:",
+          "1. First Response Time (FRT): Ticket create hone ke baad pehle response ka tay samay (e.g. Critical ke liye 15 minute).",
+          "2. Resolution Time: Samasya ko poori tarah theek karne ki agreed commitment.",
+          "3. Severity Tiers: P1 (System Down - Emergency), P2 (Major Impact - Core feature blocked), P3 (Minor Glitch - Workaround available), P4 (General Inquiry).",
+          "4. Escalation Protocol: P1 issues me lead engineer aur customer success director ko turant 30-minute updates par loop me rakhein."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Operations: Support SLAs'
+      };
+    } else {
+      response = {
+        text: [
+          "Enterprise Support SLAs and Escalation Protocols:",
+          "1. First Response Time (FRT): The contractual window before an initial human engineer response (e.g. under 15 minutes for P1 outages).",
+          "2. Mean Time to Resolution (MTTR): The targeted window to completely resolve the underlying issue.",
+          "3. Severity Tiering: P1 (Critical Outage / Core System Halted), P2 (Major Degradation / Core Feature Blocked), P3 (Moderate Issue / Workaround Available), P4 (Routine Consultation).",
+          "4. Escalation Management: On P1 tickets, establish dedicated bridge lines and push executive status updates every 30 minutes until restored."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Operations: Support SLAs'
+      };
+    }
+  }
+
+  // R. WIN-BACK STRATEGY FOR INACTIVE CLIENTS
+  const isWinBackQuery =
+    !response &&
+    (normalized.includes('win back') ||
+     normalized.includes('win-back') ||
+     (normalized.includes('wapas') && normalized.includes('customer')) ||
+     normalized.includes('re-engage inactive') ||
+     normalized.includes('reactivate customer'));
+
+  if (!response && isWinBackQuery) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Inactive aur Churned Customers ko wapas lane ki Win-Back Strategy:",
+          "1. Past Reason Diagnose Karein: Check karein ki unhone service kyu pause ya cancel ki thi (pricing, missing feature, ya support issue).",
+          "2. New Value Showcase Karein: Unhe batayein ki unka specific blocker kaise solve kiya gaya hai (e.g. 'Humne wo feature live kar diya hai jiska aapko intezaar tha').",
+          "3. Zero-Risk Trial Offer: 30-day complimentary pilot ya tailored renewal discount offer karein.",
+          "4. Action: Aap 'Draft email for [Customer Name]' bolkar abhi tailored win-back outreach draft karwa sakte hain."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Strategy: Win-Back Outreach'
+      };
+    } else {
+      response = {
+        text: [
+          "Proven Win-Back Framework for Inactive Client Accounts:",
+          "1. Diagnose Historical Churn Drivers: Identify why the account paused (e.g. pricing, workflow integration gaps, or leadership changes).",
+          "2. Present Tailored Improvements: Reach out showing that their primary friction point has been engineered away or improved.",
+          "3. Low-Friction Re-Onboarding: Offer a 30-day reactivation pilot or grandfathered renewal incentive to minimize adoption risk.",
+          "4. Immediate Execution: You can say 'Draft email for [Name]' right now to generate a custom re-engagement message."
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Strategy: Win-Back Outreach'
+      };
+    }
+  }
+
+  // S. SALES CLOSING & OBJECTION HANDLING
+  const isClosingOrObjections =
+    !response &&
+    (normalized.includes('objection handling') ||
+     normalized.includes('pricing objection') ||
+     normalized.includes('budget objection') ||
+     normalized.includes('closing techniques') ||
+     (normalized.includes('close') && (normalized.includes('deal') || normalized.includes('deals'))));
+
+  if (!response && isClosingOrObjections) {
+    if (isHindi) {
+      response = {
+        text: [
+          "Enterprise Deals Close karne aur Objections handle karne ke practical rules:",
+          "1. Pricing Objection: Price kam karne ke bajaye, unke risk aur return (ROI) par focus karein. Batayein ki samasya hal na karne ki cost kitni zyada hai.",
+          "2. Timeline Delay Objection: 'Mutual Action Plan' create karein aur unke board/leadership deadlines se go-live date reverse-engineer karein.",
+          "3. Champion Enablement: Apne internal champion ko executive deck aur one-pager provide karein taaki wo internal meeting me deal push kar sake.",
+          "4. The Closing Ask: Direct poochhein: 'Agar hum is timeline aur security compliance par sahmat hote hain, to kya contract sign karne me koi aur rukawat bachi hai?'"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Strategy: Deal Closing'
+      };
+    } else {
+      response = {
+        text: [
+          "Practical Rules for Closing Enterprise Deals and Handling Objections:",
+          "1. Pricing Pushback: Never discount reactively. Shift discussion to the financial cost of inaction and proven payback timeframe.",
+          "2. Timing and Delay Objections: Reverse-engineer the schedule from the client's internal quarterly objectives using a Mutual Action Plan.",
+          "3. Arming Your Champion: Equip your internal champion with an executive business case so they can sell when you are not in the boardroom.",
+          "4. The Direct Close: Ask the definitive closing question: 'Assuming we satisfy this security protocol and timeline, what other obstacles stand in the way of signing?'"
+        ].join('\n'),
+        toolCalled: 'explain_crm_concept',
+        badge: 'Strategy: Deal Closing'
       };
     }
   }
@@ -1820,21 +2299,60 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 16. DYNAMIC HUMAN-LIKE CONTEXTUAL FALLBACK (Conversational paragraph!)
+  // 16. PRACTICAL BUSINESS PERSPECTIVE & OUT-OF-DOMAIN GUARDRAIL
   // =========================================================================
   if (!response) {
-    if (isHindi) {
-      response = {
-        text: `Yeh ek bahut acchi aur dilchasp baat hai! Ek bharosemand sathi ki tarah mera yahi manna hai ki har situation me clarity, honesty aur mutual respect sabse zaroori hote hain. NexusCRM me abhi aapke ${totalCount} accounts (${activeCount} active, ${inactiveCount} inactive) smoothly chal rahe hain. Agar kisi specific customer ya CRM task me meri madad chahiye, to bas batao!`,
-        toolCalled: 'explain_crm_concept',
-        badge: 'Nexus AI: Conversational'
-      };
+    const isMeaningOfSuccess =
+      normalized.includes('meaning of success') ||
+      normalized.includes('success kya hai') ||
+      normalized.includes('definition of success') ||
+      normalized.includes('what is success');
+
+    const isOutOfDomain =
+      /\b(weather|mausam|barish|recipe|cook|cooking|khana|cake|biryani|chai|coffee|cricket|football|ipl|movie|film|cinema|actor|politics|election|minister|president|song|gaana|dinosaur|planet|mars)\b/i.test(normalized);
+
+    if (isMeaningOfSuccess) {
+      if (isHindi) {
+        response = {
+          text: `Business aur CRM ke practical nazariye se, success ka matlab hai: customers ke sath compounding trust aur continuous value create karna. Jab aapka retention rate high hota hai, churn kam rehta hai aur clients aapke solution ko indispensable maante hain, tab sustainable revenue growth automatically follow karti hai. Aapke NexusCRM me abhi ${activePct}% retention rate hai (${activeCount} active accounts)—ise 85%+ le jana ek practical business success target hai.`,
+          toolCalled: 'explain_crm_concept',
+          badge: 'Nexus AI: Conversational'
+        };
+      } else {
+        response = {
+          text: `From a practical business and CRM standpoint, real success is about creating compounding trust and demonstrable ROI for your customers. When retention is high, churn is low, and your clients view your platform as mission-critical, revenue growth and customer advocacy follow automatically. In NexusCRM, we currently hold an ${activePct}% retention rate across our ${totalCount} accounts—pushing that toward 85%+ is a concrete, measurable success milestone.`,
+          toolCalled: 'explain_crm_concept',
+          badge: 'Nexus AI: Conversational'
+        };
+      }
+    } else if (isOutOfDomain) {
+      if (isHindi) {
+        response = {
+          text: `Main Google Gemini-grade reasoning par chalne wala ek dedicated CRM Copilot hoon, isliye mera focus strictly aapke enterprise customer accounts, sales pipeline, churn mitigation aur portfolio metrics par kendrit hai. Non-CRM vishayon ke bajaye, chaliye aapke customer accounts aur business workflows par concentrate karte hain. Aapke database me abhi ${totalCount} accounts hain (${activeCount} active, ${inactiveCount} inactive)—bataiye inme se kis customer ya pipeline metric par hum kaam karein?`,
+          toolCalled: 'explain_crm_concept',
+          badge: 'Nexus AI: CRM Focus'
+        };
+      } else {
+        response = {
+          text: `I operate with Google Gemini-grade intelligence specifically dedicated to enterprise CRM operations, customer directory management, sales pipeline velocity, and client retention. To deliver maximum business value, I stay strictly focused on your CRM workflows. Looking at your live portfolio of ${totalCount} accounts with an ${activePct}% retention rate, how can I assist with your customer records, deal workflows, or outreach today?`,
+          toolCalled: 'explain_crm_concept',
+          badge: 'Nexus AI: CRM Focus'
+        };
+      }
     } else {
-      response = {
-        text: `That is an intriguing question! Speaking as your teammate, I find that whether dealing with business or daily life, focusing on consistency, clear expectations, and empathy always drives the best outcomes. Across NexusCRM, we currently have ${totalCount} enterprise accounts actively tracked with an ${activePct}% retention rate. If you need a hand with any customer info or CRM tasks, I'm right here with you!`,
-        toolCalled: 'explain_crm_concept',
-        badge: 'Nexus AI: Conversational'
-      };
+      if (isHindi) {
+        response = {
+          text: `Yeh ek dilchasp sawal hai. Practical business aur CRM operations ke nazariye se, har outcome consistency, clear expectations aur data-driven execution par depend karta hai. NexusCRM me abhi aapke ${totalCount} accounts (${activeCount} active, ${inactiveCount} inactive) live track ho rahe hain. Agar kisi specific customer, pipeline status ya CRM metric par action lena ho, to bas batayein!`,
+          toolCalled: 'explain_crm_concept',
+          badge: 'Nexus AI: Conversational'
+        };
+      } else {
+        response = {
+          text: `That is an interesting inquiry. From a practical business and CRM operations perspective, sustainable results always come down to consistency, clear accountability, and data-driven execution. Across NexusCRM, we are currently managing ${totalCount} accounts with an ${activePct}% active retention rate. If you would like to inspect a customer, adjust an account status, or optimize your pipeline, just say the word!`,
+          toolCalled: 'explain_crm_concept',
+          badge: 'Nexus AI: Conversational'
+        };
+      }
     }
   }
 
