@@ -28,15 +28,10 @@ export default function CopilotDrawer() {
       id: 'msg-welcome',
       sender: 'agent',
       text: [
-        "Hi! I am your Nexus AI Copilot. I can answer all questions about this CRM and execute actions for you in real-time:",
-        "1. Answer any question about CRM concepts (churn, retention, LTV, CAC, sales pipeline)",
-        "2. Look up any customer, company, contact details, or account status",
-        "3. Update customer details (change status, phone, email, company) and save them live",
-        "4. Add new customer records or delete existing profiles",
-        "5. Explain dashboard metrics, acquisition charts, and business health ratios",
-        "6. Draft personalized outreach and re-engagement emails",
+        "Hey there, friend! I am your AI partner and companion here in NexusCRM.",
+        "Whenever you need help checking on a customer, updating records, calculating stats, or just talking through ideas, I've got your back.",
         "",
-        "What question or task can I help you with?"
+        "What can I help you with today?"
       ].join('\n'),
       toolCalled: null,
       badge: null,
@@ -100,6 +95,7 @@ export default function CopilotDrawer() {
   };
 
   const quickPrompts = [
+    { label: "🤝 Can you help me?", prompt: "Can you help me with CRM and customer info?" },
     { label: "❓ What is CRM?", prompt: "What is CRM and why do we use it?" },
     { label: "✏️ Mark Eleanor Inactive", prompt: "Change Eleanor Vance status to Inactive" },
     { label: "📊 Portfolio stats", prompt: "Summarize portfolio health and customer metrics" },
@@ -124,7 +120,7 @@ export default function CopilotDrawer() {
           </div>
           <span>Nexus AI Copilot</span>
           <span className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-white/20 text-white uppercase tracking-wider">
-            Agent
+            Friend &amp; Agent
           </span>
         </button>
       )}
@@ -146,10 +142,10 @@ export default function CopilotDrawer() {
                   <h3 className="text-sm font-bold tracking-tight">Nexus AI Copilot</h3>
                   <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Agentic
+                    AI Partner
                   </span>
                 </div>
-                <p className="text-[11px] text-indigo-200/80">Autonomous CRM Actions &amp; Tool Calling</p>
+                <p className="text-[11px] text-indigo-200/80">Your Helpful Teammate &amp; CRM Companion</p>
               </div>
             </div>
 
@@ -304,7 +300,7 @@ export default function CopilotDrawer() {
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-bounce" style={{ animationDelay: '150ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
-                  <span className="text-[11px] font-medium text-slate-500">Reasoning &amp; executing tools...</span>
+                  <span className="text-[11px] font-medium text-slate-500">Thinking &amp; helping you out...</span>
                 </div>
               </div>
             )}
@@ -326,7 +322,7 @@ export default function CopilotDrawer() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask or instruct (e.g. 'Add client Sarah at Spotify')..."
+                placeholder="Ask me for help or tell me what to do (e.g. 'Can you check Marcus?')..."
                 className="w-full pl-3.5 pr-10 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-2xl text-xs sm:text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
               />
               <button
@@ -339,7 +335,7 @@ export default function CopilotDrawer() {
               </button>
             </form>
             <p className="mt-1.5 text-center text-[10px] text-slate-400">
-              Nexus AI Agent executes actions directly via React App State
+              Your AI companion updates data live in React App State
             </p>
           </div>
         </div>
