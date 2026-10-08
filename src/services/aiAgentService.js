@@ -105,7 +105,8 @@ export async function processCopilotMessage(userInput, context) {
     'kuch', 'kuchh', 'matlab', 'antar', 'fark', 'walo', 'wale', 'wali', 'ka', 'ki', 'ke', 'ko', 'mein', 'se',
     'tum', 'aap', 'mera', 'meri', 'hamara', 'chahiye', 'sakta', 'sakti', 'samajh', 'samajhte',
     'badlo', 'badal', 'lagao', 'madad', 'sawal', 'jawab', 'hindi', 'bhasha', 'bol', 'bolo',
-    'karein', 'kare', 'bataiye', 'kiska', 'iski', 'uska', 'unki', 'unke'
+    'karein', 'kare', 'bataiye', 'kiska', 'iski', 'uska', 'unki', 'unke',
+    'namaste', 'namaskar', 'pranam', 'shukriya', 'dhanyawad'
   ];
 
   const isHindi = hasDevanagari || hindiIndicators.some(w => new RegExp(`\\b${w}\\b`, 'i').test(lower));
@@ -238,6 +239,7 @@ export async function processCopilotMessage(userInput, context) {
   // 3. TARGET CUSTOMER RECOGNITION (Multi-field match)
   let targetCustomer = null;
   let targetScore = 0;
+  let matchedCompany = null;
 
   for (const c of customerPool) {
     const fullName = c.name.toLowerCase();
@@ -247,6 +249,13 @@ export async function processCopilotMessage(userInput, context) {
     const company = c.company.toLowerCase();
     const id = c.id.toLowerCase();
     const email = c.email.toLowerCase();
+
+    const compParts = company.split(/\s+/).filter(p => p.length >= 4 && !['logistics', 'technologies', 'solutions', 'systems', 'analytics', 'capital', 'group', 'retail', 'labs', 'engineering', 'biotech', 'media', 'microchips'].includes(p));
+    const compMatches = normalized.includes(company) || compParts.some(p => new RegExp(`\\b${p}\\b`, 'i').test(normalized));
+
+    if (compMatches && !matchedCompany) {
+      matchedCompany = c.company;
+    }
 
     if (normalized.includes(fullName) && targetScore < 100) {
       targetCustomer = c;
@@ -284,12 +293,37 @@ export async function processCopilotMessage(userInput, context) {
     normalized.includes('status inactive') ||
     normalized.includes('status active');
 
+  // Greeting detection & pure greeting reciprocation
+  const greetingPattern = /\b(hi|hello|hey|hiya|greetings|namaste|namaskar|salaam|good\s+morning|good\s+afternoon|good\s+evening)\b/i;
+  const userGreetingMatch = normalized.match(greetingPattern);
+  const userSaidGreeting = !!userGreetingMatch;
+
+  const queryWithoutGreeting = normalized
+    .replace(/\b(hi|hello|hey|hiya|greetings|namaste|namaskar|salaam|good\s+morning|good\s+afternoon|good\s+evening)\b/gi, '')
+    .replace(/\b(there|copilot|ai|nexus|assistant|ji|bhai|sir|mam|friend|dost)\b/gi, '')
+    .replace(/[^\w\s]/g, '')
+    .trim();
+
+  const isPureGreeting = userSaidGreeting && queryWithoutGreeting.length === 0;
+
   let response = null;
+
+  // If user ONLY greeted, reciprocate immediately with a warm human greeting
+  if (isPureGreeting) {
+    response = {
+      text: isHindi
+        ? "Namaste! Aap se baat karke bahut accha laga. Aapka din kaisa chal raha hai? Bataiye aaj CRM me main aapki kya madad karoon?"
+        : "Hey there! It is wonderful to connect with you. How are you doing today? Let me know what you'd like to work on across your customer accounts, or if you just want to talk through ideas!",
+      toolCalled: 'explain_crm_concept',
+      badge: 'Nexus AI: Hello!'
+    };
+  }
 
   // =========================================================================
   // 0. SPECIFIC QUERY: "DO YOU UNDERSTAND HINDI?" / "KYA TUM HINDI SAMAJHTE HO"
   // =========================================================================
   const isAskingAboutHindi =
+    !response &&
     normalized.includes('hindi') &&
     (normalized.includes('samajh') || normalized.includes('understand') || normalized.includes('speak') || normalized.includes('aati') || normalized.includes('baat') || normalized.includes('bolo') || normalized.includes('bolte') || normalized.includes('kya'));
 
@@ -632,6 +666,49 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
+  // 6.5. COMPANY-SPECIFIC LOOKUPS
+  // =========================================================================
+  if (!response && matchedCompany) {
+    const compLower = matchedCompany.toLowerCase();
+    const compParts = compLower.split(/\s+/).filter(p => p.length >= 4 && !['logistics', 'technologies', 'solutions', 'systems', 'analytics', 'capital', 'group', 'retail', 'labs', 'engineering'].includes(p));
+    const mentionsCompany = normalized.includes(compLower) || compParts.some(p => new RegExp(`\\b${p}\\b`, 'i').test(normalized));
+
+    const isCompanyQuery =
+      mentionsCompany &&
+      (normalized.includes('company') ||
+       normalized.includes('who is at') ||
+       normalized.includes('who is in') ||
+       normalized.includes('who works at') ||
+       normalized.includes('who works in') ||
+       normalized.includes('kaun hai') ||
+       normalized.includes('tell me about') ||
+       normalized.includes('baare me') ||
+       normalized.includes('customers at') ||
+       normalized.includes('clients at') ||
+       normalized.includes('at ') ||
+       normalized.includes('from '));
+
+    if (isCompanyQuery) {
+      const compCustomers = customerPool.filter(c => c.company.toLowerCase() === matchedCompany.toLowerCase());
+      if (compCustomers.length > 0) {
+        if (isHindi) {
+          response = {
+            text: `${matchedCompany} ke sath hamare ${compCustomers.length} customer account(s) registered hain: ${compCustomers.map(c => `${c.name} (${c.status}, Email: ${c.email}, Phone: ${c.phone})`).join(', ')}. Inme se kisi ki details inspect ya update karni ho to bataiye!`,
+            toolCalled: 'fetch_customer_profile',
+            badge: `Company: ${matchedCompany}`
+          };
+        } else {
+          response = {
+            text: `We currently have ${compCustomers.length} customer account(s) at ${matchedCompany}: ${compCustomers.map(c => `${c.name} (${c.status}, Email: ${c.email}, Phone: ${c.phone})`).join(', ')}. Let me know if you would like me to draft an email or update any records for them!`,
+            toolCalled: 'fetch_customer_profile',
+            badge: `Company: ${matchedCompany}`
+          };
+        }
+      }
+    }
+  }
+
+  // =========================================================================
   // 7. OPERATIONS DIRECTOR / SUPERADMIN / CURRENT USER INQUIRIES
   // =========================================================================
   const isDirectorQuery =
@@ -838,8 +915,32 @@ export async function processCopilotMessage(userInput, context) {
   // =========================================================================
   // 9.4. ASKING FOR HELP / ASSISTANCE
   // =========================================================================
+  const hasSpecificIntent =
+    hasCountKeywords ||
+    targetCustomer !== null ||
+    matchedCompany !== null ||
+    normalized.includes('churn') ||
+    normalized.includes('retention') ||
+    normalized.includes('today') ||
+    normalized.includes('aaj') ||
+    normalized.includes('oldest') ||
+    normalized.includes('newest') ||
+    normalized.includes('purana') ||
+    normalized.includes('naya') ||
+    normalized.includes('active') ||
+    normalized.includes('inactive') ||
+    normalized.includes('all customers') ||
+    normalized.includes('list') ||
+    normalized.includes('show') ||
+    normalized.includes('pipeline') ||
+    normalized.includes('ltv') ||
+    normalized.includes('cac') ||
+    normalized.includes('chart') ||
+    normalized.includes('email');
+
   const isHelpRequest =
     !response &&
+    !hasSpecificIntent &&
     (/\b(help|assist|assistance|favor|support)\b/i.test(normalized) ||
      normalized.includes('madad') ||
      normalized.includes('sahayata')) &&
@@ -869,22 +970,15 @@ export async function processCopilotMessage(userInput, context) {
   // 9.5. HUMAN CONVERSATIONAL INTELLIGENCE (Conversational paragraphs!)
   // =========================================================================
 
-  // A. GREETINGS & OPENERS
+  // A. GREETINGS & OPENERS (Pure greetings only - handled early, but fallback here if needed)
   const isGreeting =
     !response &&
-    (/\b(hi|hello|hey|hiya|greetings|namaste|namaskar|salaam|good morning|good afternoon|good evening)\b/i.test(normalized) ||
-     normalized === 'hi' ||
-     normalized === 'hello' ||
-     normalized === 'hey') &&
-    !normalized.includes('how to') &&
-    !normalized.includes('delete') &&
-    !normalized.includes('update') &&
-    !normalized.includes('status');
+    isPureGreeting;
 
   if (!response && isGreeting) {
     response = {
       text: isHindi
-        ? "Hello! Aap se baat karke bahut accha laga. Aapka din kaisa chal raha hai? Bataiye aaj CRM me main aapki kya madad karoon?"
+        ? "Namaste! Aap se baat karke bahut accha laga. Aapka din kaisa chal raha hai? Bataiye aaj CRM me main aapki kya madad karoon?"
         : "Hey there! It is wonderful to connect with you. How are you doing today? Let me know what you'd like to work on across your customer accounts, or if you just want to talk through ideas!",
       toolCalled: 'explain_crm_concept',
       badge: 'Nexus AI: Hello!'
@@ -1098,10 +1192,65 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 10. COUNTS & REAL-TIME STATISTICAL INQUIRIES (Direct concise sentences!)
+  // 10. CHRONOLOGY: OLDEST & NEWEST CUSTOMERS (Must run before counts!)
+  // =========================================================================
+  const isAskingWhoOldest =
+    !response &&
+    (normalized.includes('oldest') ||
+     normalized.includes('first customer') ||
+     normalized.includes('earliest customer') ||
+     normalized.includes('joined first') ||
+     normalized.includes('sabse purana') ||
+     normalized.includes('pehla customer') ||
+     ((normalized.includes('who') || normalized.includes('kaun') || normalized.includes('konsa') || normalized.includes('which')) && (normalized.includes('old') || normalized.includes('purana') || normalized.includes('earliest') || normalized.includes('first'))));
+
+  if (!response && isAskingWhoOldest) {
+    const sortedAsc = [...customerPool].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    const firstClient = sortedAsc[0];
+    const firstDate = new Date(firstClient.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    response = {
+      text: isHindi
+        ? `NexusCRM me sabse pehle onboard hue customer ${firstClient.name} (${firstClient.company}) hain, jo ${firstDate} ko ${firstClient.status} status ke sath add hue the (Email: ${firstClient.email}).`
+        : `The earliest onboarded customer in NexusCRM is ${firstClient.name} from ${firstClient.company}, onboarded on ${firstDate} with ${firstClient.status} status (Email: ${firstClient.email}). They've been with us the longest!`,
+      toolCalled: 'fetch_customer_profile',
+      badge: `Earliest: ${firstClient.name}`,
+      data: firstClient
+    };
+  }
+
+  const isAskingWhoNewest =
+    !response &&
+    (normalized.includes('newest') ||
+     normalized.includes('latest customer') ||
+     normalized.includes('joined last') ||
+     normalized.includes('most recent customer') ||
+     normalized.includes('sabse naya') ||
+     normalized.includes('aakhiri customer') ||
+     ((normalized.includes('who') || normalized.includes('kaun') || normalized.includes('konsa') || normalized.includes('which')) && (normalized.includes('new') || normalized.includes('latest') || normalized.includes('recent') || normalized.includes('naya'))));
+
+  if (!response && isAskingWhoNewest) {
+    const sortedDesc = [...customerPool].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const newestClient = sortedDesc[0];
+    const newestDate = new Date(newestClient.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    response = {
+      text: isHindi
+        ? `NexusCRM me sabse naye onboard hue customer ${newestClient.name} (${newestClient.company}) hain, jo ${newestDate} ko ${newestClient.status} status ke sath add hue the (Phone: ${newestClient.phone}).`
+        : `The most recently onboarded customer in NexusCRM is ${newestClient.name} from ${newestClient.company}, onboarded on ${newestDate} with ${newestClient.status} status (Phone: ${newestClient.phone}). Brand new to the team!`,
+      toolCalled: 'fetch_customer_profile',
+      badge: `Newest: ${newestClient.name}`,
+      data: newestClient
+    };
+  }
+
+  // =========================================================================
+  // 11. COUNTS & REAL-TIME STATISTICAL INQUIRIES (Direct concise sentences!)
   // =========================================================================
   const isCountQuery =
     !response &&
+    !isAskingWhoNewest &&
+    !isAskingWhoOldest &&
     !normalized.includes('churn') &&
     !normalized.includes('retention') &&
     (hasCountKeywords ||
@@ -1183,7 +1332,7 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 11. CHURN & RETENTION RATES
+  // 12. CHURN & RETENTION RATES
   // =========================================================================
   const isChurnQuery =
     !response &&
@@ -1279,43 +1428,92 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // =========================================================================
-  // 12. CHRONOLOGY: OLDEST & NEWEST CUSTOMERS
-  // =========================================================================
-  if (!response && (normalized.includes('oldest') || normalized.includes('first customer') || normalized.includes('earliest customer') || normalized.includes('joined first') || normalized.includes('sabse purana') || normalized.includes('pehla customer'))) {
-    const sortedAsc = [...customerPool].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    const firstClient = sortedAsc[0];
-    const firstDate = new Date(firstClient.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-    response = {
-      text: isHindi
-        ? `NexusCRM me sabse pehle onboard hue customer ${firstClient.name} (${firstClient.company}) hain, jo ${firstDate} ko ${firstClient.status} status ke sath add hue the (Email: ${firstClient.email}).`
-        : `The earliest onboarded customer in NexusCRM is ${firstClient.name} from ${firstClient.company}, onboarded on ${firstDate} with ${firstClient.status} status (Email: ${firstClient.email}). They've been with us the longest!`,
-      toolCalled: 'fetch_customer_profile',
-      badge: `Earliest: ${firstClient.name}`,
-      data: firstClient
-    };
-  }
-
-  if (!response && (normalized.includes('newest') || normalized.includes('latest customer') || normalized.includes('joined last') || normalized.includes('most recent customer') || normalized.includes('sabse naya') || normalized.includes('aakhiri customer'))) {
-    const sortedDesc = [...customerPool].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    const newestClient = sortedDesc[0];
-    const newestDate = new Date(newestClient.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-    response = {
-      text: isHindi
-        ? `NexusCRM me sabse naye onboard hue customer ${newestClient.name} (${newestClient.company}) hain, jo ${newestDate} ko ${newestClient.status} status ke sath add hue the (Phone: ${newestClient.phone}).`
-        : `The most recently onboarded customer in NexusCRM is ${newestClient.name} from ${newestClient.company}, onboarded on ${newestDate} with ${newestClient.status} status (Phone: ${newestClient.phone}). Brand new to the team!`,
-      toolCalled: 'fetch_customer_profile',
-      badge: `Newest: ${newestClient.name}`,
-      data: newestClient
-    };
-  }
-
-  // =========================================================================
   // 13. PORTFOLIO BREAKDOWN & LIST COHORTS (Huge list data: points used!)
   // =========================================================================
+
+  // List Active Customers Cohort (Huge list data: points used!)
+  const isAskingActiveCohort =
+    !response &&
+    !hasCountKeywords &&
+    !targetCustomer &&
+    !/\binactive\b/i.test(normalized) &&
+    (normalized.includes('list active') ||
+     normalized.includes('show active') ||
+     normalized.includes('active list') ||
+     normalized.includes('active customers ki list') ||
+     normalized.includes('active walo ki list') ||
+     (/\bactive\b/i.test(normalized) && (normalized.includes('show') || normalized.includes('list') || normalized.includes('dikhao') || normalized.includes('who are') || normalized.includes('which') || normalized.includes('kaun'))));
+
+  if (!response && isAskingActiveCohort) {
+    const activeList = customerPool.filter(c => c.status === 'Active');
+    const displayList = activeList.slice(0, 5);
+
+    if (isHindi) {
+      response = {
+        text: [
+          `Yeh rahi NexusCRM me Active Accounts ki list (${activeList.length} total, ${activePct}% active ratio):`,
+          ...displayList.map((c, i) => `${i + 1}. ${c.name} — ${c.company} (${c.email})`),
+          `${displayList.length + 1}. Aur ${activeList.length - displayList.length} additional active accounts Customer Directory me hain`
+        ].join('\n'),
+        toolCalled: 'list_customers_by_status',
+        badge: `Active (${activeList.length})`
+      };
+    } else {
+      response = {
+        text: [
+          `Active Accounts in NexusCRM (${activeList.length} total, ${activePct}% active ratio):`,
+          ...displayList.map((c, i) => `${i + 1}. ${c.name} — ${c.company} (${c.email})`),
+          `${displayList.length + 1}. Plus ${activeList.length - displayList.length} additional active accounts in the Customer Directory`
+        ].join('\n'),
+        toolCalled: 'list_customers_by_status',
+        badge: `Active (${activeList.length})`
+      };
+    }
+  }
+
+  // List Inactive Customers Cohort (Huge list data: points used!)
+  const isAskingInactiveCohort =
+    !response &&
+    !hasCountKeywords &&
+    !targetCustomer &&
+    (normalized.includes('list inactive') ||
+     normalized.includes('show inactive') ||
+     normalized.includes('inactive list') ||
+     normalized.includes('inactive customers ki list') ||
+     normalized.includes('inactive walo ki list') ||
+     (normalized.includes('inactive') && (normalized.includes('show') || normalized.includes('list') || normalized.includes('dikhao') || normalized.includes('who are') || normalized.includes('which') || normalized.includes('kaun'))));
+
+  if (!response && isAskingInactiveCohort) {
+    const inactiveList = customerPool.filter(c => c.status === 'Inactive');
+    const displayList = inactiveList.slice(0, 5);
+
+    if (isHindi) {
+      response = {
+        text: [
+          `Yeh rahi NexusCRM me Inactive Accounts ki list (${inactiveList.length} total, ${churnPct}% churn risk):`,
+          ...displayList.map((c, i) => `${i + 1}. ${c.name} — ${c.company} (Contact: ${c.email})`),
+          `${displayList.length + 1}. Action: Kisi bhi customer ke liye 'Draft email for [Name]' bol kar win-back email taiyar karein`
+        ].join('\n'),
+        toolCalled: 'list_customers_by_status',
+        badge: `Inactive (${inactiveList.length})`
+      };
+    } else {
+      response = {
+        text: [
+          `Inactive Accounts in NexusCRM (${inactiveList.length} total, ${churnPct}% churn risk):`,
+          ...displayList.map((c, i) => `${i + 1}. ${c.name} — ${c.company} (Contact: ${c.email})`),
+          `${displayList.length + 1}. Recommended Action: Say 'Draft email for [Name]' to generate a tailored win-back email`
+        ].join('\n'),
+        toolCalled: 'list_customers_by_status',
+        badge: `Inactive (${inactiveList.length})`
+      };
+    }
+  }
+
   const isAllOfThemQuery =
     !response &&
+    !normalized.includes('active') &&
+    !normalized.includes('inactive') &&
     (normalized.includes('all of them') ||
      normalized.includes('related to all') ||
      normalized.includes('about all') ||
@@ -1326,6 +1524,8 @@ export async function processCopilotMessage(userInput, context) {
      normalized.includes('all clients') ||
      normalized.includes('everyone') ||
      normalized.includes('list all') ||
+     normalized.includes('show all') ||
+     normalized.includes('show me all') ||
      normalized.includes('sabke baare me') ||
      normalized.includes('sabhi customers') ||
      normalized.includes('saare customers') ||
@@ -1363,62 +1563,6 @@ export async function processCopilotMessage(userInput, context) {
         ].join('\n'),
         toolCalled: 'get_portfolio_summary',
         badge: `Portfolio: All ${totalCount} Accounts`
-      };
-    }
-  }
-
-  // List Active Customers Cohort (Huge list data: points used!)
-  if (!response && (normalized.includes('list active') || normalized.includes('show active') || normalized.includes('active customers ki list') || normalized.includes('active walo ki list'))) {
-    const activeList = customerPool.filter(c => c.status === 'Active');
-    const displayList = activeList.slice(0, 5);
-
-    if (isHindi) {
-      response = {
-        text: [
-          `Yeh rahi NexusCRM me Active Accounts ki list (${activeList.length} total, ${activePct}% active ratio):`,
-          ...displayList.map((c, i) => `${i + 1}. ${c.name} — ${c.company} (${c.email})`),
-          `${displayList.length + 1}. Aur ${activeList.length - displayList.length} additional active accounts Customer Directory me hain`
-        ].join('\n'),
-        toolCalled: 'list_customers_by_status',
-        badge: `Active (${activeList.length})`
-      };
-    } else {
-      response = {
-        text: [
-          `Active Accounts in NexusCRM (${activeList.length} total, ${activePct}% active ratio):`,
-          ...displayList.map((c, i) => `${i + 1}. ${c.name} — ${c.company} (${c.email})`),
-          `${displayList.length + 1}. Plus ${activeList.length - displayList.length} additional active accounts in the Customer Directory`
-        ].join('\n'),
-        toolCalled: 'list_customers_by_status',
-        badge: `Active (${activeList.length})`
-      };
-    }
-  }
-
-  // List Inactive Customers Cohort (Huge list data: points used!)
-  if (!response && (normalized.includes('list inactive') || normalized.includes('show inactive') || normalized.includes('inactive customers ki list') || normalized.includes('inactive walo ki list'))) {
-    const inactiveList = customerPool.filter(c => c.status === 'Inactive');
-    const displayList = inactiveList.slice(0, 5);
-
-    if (isHindi) {
-      response = {
-        text: [
-          `Yeh rahi NexusCRM me Inactive Accounts ki list (${inactiveList.length} total, ${churnPct}% churn risk):`,
-          ...displayList.map((c, i) => `${i + 1}. ${c.name} — ${c.company} (Contact: ${c.email})`),
-          `${displayList.length + 1}. Action: Kisi bhi customer ke liye 'Draft email for [Name]' bol kar win-back email taiyar karein`
-        ].join('\n'),
-        toolCalled: 'list_customers_by_status',
-        badge: `Inactive (${inactiveList.length})`
-      };
-    } else {
-      response = {
-        text: [
-          `Inactive Accounts in NexusCRM (${inactiveList.length} total, ${churnPct}% churn risk):`,
-          ...displayList.map((c, i) => `${i + 1}. ${c.name} — ${c.company} (Contact: ${c.email})`),
-          `${displayList.length + 1}. Recommended Action: Say 'Draft email for [Name]' to generate a tailored win-back email`
-        ].join('\n'),
-        toolCalled: 'list_customers_by_status',
-        badge: `Inactive (${inactiveList.length})`
       };
     }
   }
@@ -1695,10 +1839,20 @@ export async function processCopilotMessage(userInput, context) {
   }
 
   // Mandatory Post-Processing:
-  // 1. Strip every single asterisk (*)
-  // 2. Strip any accidental mention of "friend" / "dost"
-  // 3. Clean any badge mentioning "friend" or "dost"
+  // 1. Reciprocate user greeting if user greeted while asking a question
+  // 2. Strip every single asterisk (*)
+  // 3. Strip any accidental mention of "friend" / "dost"
+  // 4. Clean any badge mentioning "friend" or "dost"
   let cleanText = response.text.replace(/\*/g, '').trim();
+
+  if (userSaidGreeting && !isPureGreeting && cleanText) {
+    const startsWithOpener = /^(?:hi|hello|hey|namaste|good\s+morning|good\s+afternoon|good\s+evening|arre\s+bilkul|bilkul|all\s+done|awesome|zabardast)\b/i.test(cleanText);
+    if (!startsWithOpener) {
+      const greetingPrefix = isHindi ? "Namaste! " : "Hello! ";
+      cleanText = greetingPrefix + cleanText;
+    }
+  }
+
   cleanText = stripFriendReferences(cleanText);
 
   const cleanBadge = response.badge
