@@ -203,6 +203,7 @@ export function AppProvider({ children }) {
     <AppContext.Provider
       value={{
         theme,
+        setTheme,
         toggleTheme,
         user,
         login,
