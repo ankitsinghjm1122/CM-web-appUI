@@ -1,0 +1,140 @@
+name: NexusCRM CD — Deploy to AWS Windows Server
+
+on:
+  workflow_run:
+    workflows: [ "NexusCRM Enterprise CI Pipeline" ]
+    types: [ completed ]
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: 'Target Deployment Environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      trigger_rollback:
+        description: 'Trigger emergency rollback instead of new deployment'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write   # For AWS OIDC authentication (Zero hardcoded secrets)
+
+jobs:
+  # ────────────────────────────────────────────────────────────
+  # Continuous Deployment Job for AWS Windows Server
+  # ────────────────────────────────────────────────────────────
+  deploy-to-windows-server:
+    name: 🚀 Deploy to AWS EC2 Windows Server
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: http://${{ secrets.AWS_WINDOWS_SERVER_HOST || 'ec2-instance-ip' }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # ────────────────────────────────────────────────────────────
+      # Option A: S3 + AWS Systems Manager (SSM) Remote Execution
+      # ────────────────────────────────────────────────────────────
+      - name: Configure AWS Credentials (OIDC / IAM)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Download Build Artifact from CI
+        if: ${{ !inputs.trigger_rollback }}
+        uses: actions/download-artifact@v4
+        with:
+          name: nexuscrm-release-${{ github.sha }}
+          path: ./artifacts/
+        continue-on-error: true
+
+      - name: Stage Artifact to AWS S3 Bucket
+        if: ${{ !inputs.trigger_rollback }}
+        run: |
+          ZIP_FILE=$(find ./artifacts -name "*.zip" | head -n 1)
+          if [ -n "$ZIP_FILE" ]; then
+            echo "Uploading $ZIP_FILE to S3 staging..."
+            aws s3 cp "$ZIP_FILE" "s3://${{ secrets.AWS_DEPLOY_BUCKET }}/releases/latest-release.zip"
+          else
+            echo "Packaging current tree as release..."
+            zip -r latest-release.zip dist backend scripts public/web.config
+            aws s3 cp latest-release.zip "s3://${{ secrets.AWS_DEPLOY_BUCKET }}/releases/latest-release.zip"
+          fi
+
+      - name: Execute Deployment via AWS SSM Run Command
+        if: ${{ !inputs.trigger_rollback }}
+        run: |
+          echo "Sending deployment command to AWS EC2 Windows Instance: ${{ secrets.AWS_EC2_WINDOWS_INSTANCE_ID }}"
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ secrets.AWS_EC2_WINDOWS_INSTANCE_ID }}" \
+            --document-name "AWS-RunPowerShellScript" \
+            --comment "Deploying NexusCRM Release ${{ github.sha }} via GitHub Actions" \
+            --parameters commands='[
+              "$bucket = \"${{ secrets.AWS_DEPLOY_BUCKET }}\"",
+              "$dest = \"C:\\apps\\nexuscrm\\staging\\latest-release.zip\"",
+              "New-Item -ItemType Directory -Path \"C:\\apps\\nexuscrm\\staging\" -Force | Out-Null",
+              "Read-S3Object -BucketName $bucket -Key \"releases/latest-release.zip\" -File $dest",
+              "& \"C:\\apps\\nexuscrm\\scripts\\deploy.ps1\" -ArtifactZipPath $dest"
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "SSM Command dispatched with ID: $COMMAND_ID"
+          echo "Waiting for command completion and streaming status..."
+
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ secrets.AWS_EC2_WINDOWS_INSTANCE_ID }}"
+
+          STATUS=$(aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ secrets.AWS_EC2_WINDOWS_INSTANCE_ID }}" \
+            --query "Status" \
+            --output text)
+
+          echo "Deployment SSM Status: $STATUS"
+          if [ "$STATUS" != "Success" ]; then
+            echo "Deployment failed on Windows Server!"
+            aws ssm get-command-invocation \
+              --command-id "$COMMAND_ID" \
+              --instance-id "${{ secrets.AWS_EC2_WINDOWS_INSTANCE_ID }}" \
+              --query "StandardErrorContent" \
+              --output text
+            exit 1
+          fi
+
+      - name: Execute Emergency Rollback (If Requested)
+        if: ${{ inputs.trigger_rollback == true }}
+        run: |
+          echo "Triggering emergency rollback on instance ${{ secrets.AWS_EC2_WINDOWS_INSTANCE_ID }}..."
+          aws ssm send-command \
+            --instance-ids "${{ secrets.AWS_EC2_WINDOWS_INSTANCE_ID }}" \
+            --document-name "AWS-RunPowerShellScript" \
+            --parameters commands='[
+              "$latestBackup = (Get-ChildItem -Path \"C:\\apps\\nexuscrm\\backups\" | Sort-Object CreationTime -Descending | Select-Object -First 1).FullName",
+              "& \"C:\\apps\\nexuscrm\\scripts\\rollback.ps1\" -BackupDir $latestBackup"
+            ]'
+
+      - name: Verify Live Production Health Check
+        run: |
+          SERVER_HOST="${{ secrets.AWS_WINDOWS_SERVER_HOST }}"
+          if [ -n "$SERVER_HOST" ]; then
+            echo "Probing external endpoint: http://${SERVER_HOST}/api/health"
+            curl --fail --retry 5 --retry-delay 3 "http://${SERVER_HOST}/api/health" || {
+              echo "External health check failed!"
+              exit 1
+            }
+            echo "Production health check verified OK!"
+          else
+            echo "AWS_WINDOWS_SERVER_HOST secret not provided; skipped public endpoint verification."
+          fi

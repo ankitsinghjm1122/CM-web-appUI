@@ -99,8 +99,18 @@ if (-not (Test-Path "$AppRoot\backend\venv")) {
     & $pythonExe -m venv "$AppRoot\backend\venv"
 }
 
-# Upgrade pip in venv
-& "$AppRoot\backend\venv\Scripts\python.exe" -m pip install --upgrade pip
+# Upgrade pip and install backend requirements
+& "$AppRoot\backend\venv\Scripts\python.exe" -m pip install --upgrade pip --quiet
+if (Test-Path "$AppRoot\backend\requirements.txt") {
+    Write-Host "     Installing Python dependencies from requirements.txt..." -ForegroundColor Yellow
+    & "$AppRoot\backend\venv\Scripts\pip.exe" install -r "$AppRoot\backend\requirements.txt" --quiet
+}
+
+# Deploy frontend bundle if dist folder exists
+if (Test-Path "$AppRoot\dist") {
+    Write-Host "     Syncing compiled frontend assets to $AppRoot\frontend..." -ForegroundColor Yellow
+    Copy-Item -Path "$AppRoot\dist\*" -Destination "$AppRoot\frontend" -Recurse -Force
+}
 
 # Configure Windows Service via NSSM
 $serviceExists = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
@@ -119,6 +129,10 @@ if (-not $serviceExists) {
 } else {
     Write-Host "     Windows Service $ServiceName is already registered." -ForegroundColor Green
 }
+
+# Start or Restart backend Windows service
+Write-Host "     Starting Windows Service: $ServiceName..." -ForegroundColor Yellow
+Restart-Service -Name $ServiceName -Force -ErrorAction SilentlyContinue
 
 # 7. Enable ARR Proxy Mode in IIS
 Write-Host "[6/7] Enabling Application Request Routing (ARR) Proxy in IIS..." -ForegroundColor Yellow

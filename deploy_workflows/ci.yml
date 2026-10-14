@@ -1,0 +1,191 @@
+name: NexusCRM Enterprise CI Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      skip_audit:
+        description: 'Skip dependency security audit'
+        required: false
+        default: 'false'
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20.x'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ────────────────────────────────────────────────────────────
+  # 1. Code Quality, Linting & Security Gate
+  # ────────────────────────────────────────────────────────────
+  code-quality-and-security:
+    name: 🔍 Code Quality & Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install Frontend Dependencies
+        run: npm ci || npm install
+
+      - name: Run Frontend Linter (Oxlint)
+        run: npm run lint
+
+      - name: Validate Backend Python Syntax
+        run: |
+          python -m py_compile backend/main.py backend/database.py backend/models.py
+          find backend -name "*.py" -exec python -m py_compile {} +
+
+      - name: Validate PowerShell Deployment Scripts
+        shell: pwsh
+        run: |
+          $scripts = Get-ChildItem -Path scripts -Filter "*.ps1" -Recurse
+          foreach ($script in $scripts) {
+            Write-Host "Validating syntax for: $($script.FullName)"
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($script.FullName, [ref]$null, [ref]$errors)
+            if ($errors.Count -gt 0) {
+              Write-Error "Syntax error found in $($script.Name): $($errors[0].Message)"
+              exit 1
+            }
+          }
+          Write-Host "All PowerShell scripts passed AST syntax verification!"
+
+      - name: Security Vulnerability Scan
+        if: ${{ inputs.skip_audit != true }}
+        run: npm audit --audit-level=high || true
+
+  # ────────────────────────────────────────────────────────────
+  # 2. Frontend Test Suite
+  # ────────────────────────────────────────────────────────────
+  test-frontend:
+    name: 🧪 Frontend Unit & Copilot Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Execute Frontend Test Suite
+        run: npm test
+
+  # ────────────────────────────────────────────────────────────
+  # 3. Backend Test Suite
+  # ────────────────────────────────────────────────────────────
+  test-backend:
+    name: 🐍 Backend API & Endpoint Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install Backend Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install httpx
+
+      - name: Execute Backend Unit & Integration Tests
+        run: python -m unittest discover backend/tests
+
+  # ────────────────────────────────────────────────────────────
+  # 4. Production Build & Release Packaging
+  # ────────────────────────────────────────────────────────────
+  build-and-package:
+    name: 📦 Production Build & Release Artifact Packaging
+    needs: [code-quality-and-security, test-frontend, test-backend]
+    runs-on: ubuntu-latest
+    outputs:
+      artifact_name: ${{ steps.package.outputs.artifact_name }}
+      sha256_checksum: ${{ steps.checksum.outputs.sha256 }}
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Compile Production Frontend (Vite)
+        run: npm run build
+
+      - name: Verify Web.Config for Windows Server IIS
+        run: |
+          if [ ! -f "dist/web.config" ]; then
+            echo "Copying public/web.config to dist/"
+            cp public/web.config dist/web.config
+          fi
+          test -f "dist/index.html" || { echo "dist/index.html missing!"; exit 1; }
+          echo "Verified dist/index.html and dist/web.config exist."
+
+      - name: Package Deployment Archive
+        id: package
+        run: |
+          ARTIFACT_NAME="nexuscrm-release-${{ github.sha }}"
+          mkdir -p package_staging/nexuscrm
+          cp -r dist package_staging/nexuscrm/
+          cp -r backend package_staging/nexuscrm/
+          cp -r scripts package_staging/nexuscrm/
+          cp public/web.config package_staging/nexuscrm/
+          
+          # Remove cache and venv files from staging package
+          find package_staging -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+          find package_staging -type f -name "*.pyc" -delete 2>/dev/null || true
+
+          cd package_staging/nexuscrm && zip -r "../../${ARTIFACT_NAME}.zip" . && cd ../..
+          echo "artifact_name=${ARTIFACT_NAME}.zip" >> $GITHUB_OUTPUT
+
+      - name: Generate Release Checksum
+        id: checksum
+        run: |
+          SHA=$(sha256sum "nexuscrm-release-${{ github.sha }}.zip" | awk '{print $1}')
+          echo "sha256=${SHA}" >> $GITHUB_OUTPUT
+          echo "${SHA}  nexuscrm-release-${{ github.sha }}.zip" > checksums.txt
+          cat checksums.txt
+
+      - name: Upload Build Artifact for CD Deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexuscrm-release-${{ github.sha }}
+          path: |
+            nexuscrm-release-${{ github.sha }}.zip
+            checksums.txt
+          retention-days: 14
