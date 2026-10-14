@@ -1,0 +1,31 @@
+name: Auto Deploy to AWS Windows Server
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: 🚀 Deploy to Windows Server (IIS & FastAPI)
+    runs-on: [ self-hosted, Windows, X64 ]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Deploy Frontend to IIS & Update Backend
+        shell: powershell
+        run: |
+          Write-Host "Syncing latest compiled frontend to C:\apps\nexuscrm\frontend..."
+          Copy-Item -Path "dist\*" -Destination "C:\apps\nexuscrm\frontend" -Recurse -Force
+
+          Write-Host "Syncing backend files to C:\apps\nexuscrm\backend..."
+          Get-ChildItem -Path "backend" -Exclude "__pycache__", "crm.db" | ForEach-Object {
+            Copy-Item -Path $_.FullName -Destination "C:\apps\nexuscrm\backend" -Recurse -Force
+          }
+
+          Write-Host "Restarting Windows Service: NexusCrmBackend..."
+          Restart-Service -Name NexusCrmBackend -Force
+
+          Write-Host "Deployment completed successfully! Live on Port 80."
