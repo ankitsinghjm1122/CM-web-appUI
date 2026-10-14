@@ -1,9 +1,20 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { INITIAL_CUSTOMERS } from '../data/mockCustomers';
+import {
+  checkBackendHealth,
+  fetchCustomersApi,
+  addCustomerApi,
+  updateCustomerApi,
+  deleteCustomerApi,
+  resetCustomersApi
+} from '../services/apiClient';
 
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
+  // Backend connection & sync state
+  const [isBackendConnected, setIsBackendConnected] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   // 1. Theme State (persisted in localStorage)
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('crm_theme');
@@ -79,7 +90,7 @@ export function AppProvider({ children }) {
     localStorage.setItem('crm_profile', JSON.stringify(updatedProfile));
   };
 
-  // 4. Customers State (persisted in localStorage)
+  // 4. Customers State (persisted in localStorage and synced with FastAPI SQLite)
   const [customers, setCustomers] = useState(() => {
     const saved = localStorage.getItem('crm_customers');
     if (saved) {
@@ -92,32 +103,146 @@ export function AppProvider({ children }) {
     return INITIAL_CUSTOMERS;
   });
 
+  // Fetch customers from backend on load & periodic health check
+  const refreshFromBackend = useCallback(async () => {
+    try {
+      setIsSyncing(true);
+      const isHealthy = await checkBackendHealth();
+      setIsBackendConnected(isHealthy);
+      if (isHealthy) {
+        const backendCustomers = await fetchCustomersApi();
+        if (backendCustomers && Array.isArray(backendCustomers) && backendCustomers.length > 0) {
+          setCustomers(backendCustomers);
+          localStorage.setItem('crm_customers', JSON.stringify(backendCustomers));
+          return backendCustomers;
+        }
+      }
+    } catch (err) {
+      console.warn('[AppContext] Failed to refresh from backend', err);
+    } finally {
+      setIsSyncing(false);
+    }
+    return null;
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const init = async () => {
+      try {
+        const isHealthy = await checkBackendHealth();
+        if (!mounted) return;
+        setIsBackendConnected(isHealthy);
+        if (isHealthy) {
+          const backendCustomers = await fetchCustomersApi();
+          if (mounted && backendCustomers && Array.isArray(backendCustomers) && backendCustomers.length > 0) {
+            setCustomers(backendCustomers);
+            localStorage.setItem('crm_customers', JSON.stringify(backendCustomers));
+          }
+        }
+      } catch (err) {
+        console.warn('[AppContext] Backend health check failed', err);
+      }
+    };
+    init();
+
+    // Check backend health periodically (every 12 seconds)
+    const timer = setInterval(async () => {
+      const isHealthy = await checkBackendHealth();
+      if (mounted) {
+        setIsBackendConnected(isHealthy);
+      }
+    }, 12000);
+
+    return () => {
+      mounted = false;
+      clearInterval(timer);
+    };
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('crm_customers', JSON.stringify(customers));
   }, [customers]);
 
-  const addCustomer = (customerData) => {
+  const addCustomer = async (customerData) => {
     const newCustomer = {
       ...customerData,
-      id: `cust-${Date.now()}`,
-      createdAt: new Date().toISOString(),
+      id: customerData.id || `cust-${Date.now()}`,
+      createdAt: customerData.createdAt || new Date().toISOString(),
       avatar: customerData.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(customerData.name)}`
     };
+    // Optimistic local update
     setCustomers(prev => [newCustomer, ...prev]);
+
+    // Backend sync
+    if (isBackendConnected) {
+      try {
+        setIsSyncing(true);
+        const savedApi = await addCustomerApi(newCustomer);
+        if (savedApi && savedApi.id) {
+          // Sync with exact backend payload if returned
+          setCustomers(prev => prev.map(c => c.id === newCustomer.id ? { ...c, ...savedApi } : c));
+        }
+      } catch (err) {
+        console.warn('[AppContext] Backend add failed, keeping optimistic copy', err);
+      } finally {
+        setIsSyncing(false);
+      }
+    }
     return newCustomer;
   };
 
-  const updateCustomer = (id, updatedData) => {
+  const updateCustomer = async (id, updatedData) => {
+    // Optimistic local update
     setCustomers(prev =>
       prev.map(c => (c.id === id ? { ...c, ...updatedData } : c))
     );
+
+    // Backend sync
+    if (isBackendConnected) {
+      try {
+        setIsSyncing(true);
+        await updateCustomerApi(id, updatedData);
+      } catch (err) {
+        console.warn('[AppContext] Backend update failed', err);
+      } finally {
+        setIsSyncing(false);
+      }
+    }
   };
 
-  const deleteCustomer = (id) => {
+  const deleteCustomer = async (id) => {
+    // Optimistic local update
     setCustomers(prev => prev.filter(c => c.id !== id));
+
+    // Backend sync
+    if (isBackendConnected) {
+      try {
+        setIsSyncing(true);
+        await deleteCustomerApi(id);
+      } catch (err) {
+        console.warn('[AppContext] Backend delete failed', err);
+      } finally {
+        setIsSyncing(false);
+      }
+    }
   };
 
-  const resetCustomers = () => {
+  const resetCustomers = async () => {
+    if (isBackendConnected) {
+      try {
+        setIsSyncing(true);
+        const resetData = await resetCustomersApi();
+        if (resetData && Array.isArray(resetData) && resetData.length > 0) {
+          setCustomers(resetData);
+          localStorage.setItem('crm_customers', JSON.stringify(resetData));
+          return;
+        }
+      } catch (err) {
+        console.warn('[AppContext] Backend reset failed, falling back to local seed', err);
+      } finally {
+        setIsSyncing(false);
+      }
+    }
     setCustomers(INITIAL_CUSTOMERS);
   };
 
@@ -224,7 +349,10 @@ export function AppProvider({ children }) {
         closeCustomerProfile,
         isDirectorProfileOpen,
         openDirectorProfile,
-        closeDirectorProfile
+        closeDirectorProfile,
+        isBackendConnected,
+        isSyncing,
+        refreshFromBackend
       }}
     >
       {children}

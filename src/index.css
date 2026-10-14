@@ -27,3 +27,31 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.7);
 }
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinReverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes pulseRing {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.06); }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 14s linear infinite;
+}
+
+.animate-spin-reverse {
+  animation: spinReverse 18s linear infinite;
+}
+
+.animate-pulse-ring {
+  animation: pulseRing 3s ease-in-out infinite;
+}
+

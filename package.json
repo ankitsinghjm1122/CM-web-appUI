@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
+    "test": "node scratch/testNoFriendInChats.js",
+    "test:ci": "node scripts/test-ci-pipeline.js",
     "preview": "vite preview"
   },
   "dependencies": {

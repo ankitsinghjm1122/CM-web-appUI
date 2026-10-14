@@ -1,0 +1,282 @@
+[
+  {
+    "id": "cust-1",
+    "name": "Eleanor Vance",
+    "email": "eleanor.vance@hillcrest.io",
+    "phone": "+1 (555) 234-5678",
+    "company": "Hillcrest BioTech",
+    "status": "Active",
+    "createdAt": "2026-10-02T10:30:00Z",
+    "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-2",
+    "name": "Marcus Thorne",
+    "email": "mthorne@apexlogistics.com",
+    "phone": "+1 (555) 876-5432",
+    "company": "Apex Global Logistics",
+    "status": "Active",
+    "createdAt": "2026-10-04T14:15:00Z",
+    "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-3",
+    "name": "Sophia Chen",
+    "email": "schen@luminaryai.tech",
+    "phone": "+1 (555) 345-6789",
+    "company": "Luminary AI Labs",
+    "status": "Active",
+    "createdAt": "2026-10-05T09:00:00Z",
+    "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-4",
+    "name": "David Sterling",
+    "email": "d.sterling@vanguardcap.com",
+    "phone": "+1 (555) 987-6543",
+    "company": "Vanguard Capital",
+    "status": "Inactive",
+    "createdAt": "2026-08-15T11:20:00Z",
+    "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-5",
+    "name": "Amina Al-Mansoor",
+    "email": "amina@solardynamics.energy",
+    "phone": "+1 (555) 432-1098",
+    "company": "Solar Dynamics Corp",
+    "status": "Active",
+    "createdAt": "2026-09-12T16:45:00Z",
+    "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-6",
+    "name": "Julian Rivera",
+    "email": "jrivera@pulsemedia.agency",
+    "phone": "+1 (555) 654-3210",
+    "company": "Pulse Interactive Media",
+    "status": "Active",
+    "createdAt": "2026-09-28T08:15:00Z",
+    "avatar": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-7",
+    "name": "Chloe Desrosiers",
+    "email": "chloe@atlantisretail.fr",
+    "phone": "+1 (555) 789-0123",
+    "company": "Atlantis Retail Group",
+    "status": "Inactive",
+    "createdAt": "2026-07-20T13:40:00Z",
+    "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-8",
+    "name": "Kenji Takahashi",
+    "email": "kenji@zenithrobotics.jp",
+    "phone": "+1 (555) 210-9876",
+    "company": "Zenith Robotics",
+    "status": "Active",
+    "createdAt": "2026-10-01T12:00:00Z",
+    "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-9",
+    "name": "Rachel Greenwald",
+    "email": "rachel@horizonhealth.org",
+    "phone": "+1 (555) 321-6547",
+    "company": "Horizon Health Systems",
+    "status": "Active",
+    "createdAt": "2026-08-04T10:10:00Z",
+    "avatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-10",
+    "name": "Lucas Bennett",
+    "email": "lucas@nexuscloud.io",
+    "phone": "+1 (555) 901-2345",
+    "company": "Nexus Cloud Software",
+    "status": "Active",
+    "createdAt": "2026-09-02T15:25:00Z",
+    "avatar": "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-11",
+    "name": "Olivia Patel",
+    "email": "olivia.p@hyperioneng.com",
+    "phone": "+1 (555) 456-7890",
+    "company": "Hyperion Engineering",
+    "status": "Inactive",
+    "createdAt": "2026-06-19T09:30:00Z",
+    "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-12",
+    "name": "Ethan Wright",
+    "email": "ewright@cobaltsecurity.net",
+    "phone": "+1 (555) 567-8901",
+    "company": "Cobalt Cyber Defense",
+    "status": "Active",
+    "createdAt": "2026-10-03T11:45:00Z",
+    "avatar": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-13",
+    "name": "Isabella Rossi",
+    "email": "i.rossi@veronaauto.it",
+    "phone": "+1 (555) 678-9012",
+    "company": "Verona Autonomous",
+    "status": "Active",
+    "createdAt": "2026-09-17T14:10:00Z",
+    "avatar": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-14",
+    "name": "Noah Kim",
+    "email": "noah.kim@seoulfintech.co",
+    "phone": "+1 (555) 789-0124",
+    "company": "Seoul FinTech Guild",
+    "status": "Active",
+    "createdAt": "2026-08-29T17:00:00Z",
+    "avatar": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-15",
+    "name": "Hannah Schmidt",
+    "email": "hannah@berlinanalytics.de",
+    "phone": "+1 (555) 890-1235",
+    "company": "Berlin Data Analytics",
+    "status": "Inactive",
+    "createdAt": "2026-05-14T08:50:00Z",
+    "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-16",
+    "name": "Mateo Fernandez",
+    "email": "mateo@madridpayments.es",
+    "phone": "+1 (555) 901-2346",
+    "company": "Madrid Payments S.L.",
+    "status": "Active",
+    "createdAt": "2026-10-04T16:20:00Z",
+    "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-17",
+    "name": "Zoe Washington",
+    "email": "zoe@cascadeeco.org",
+    "phone": "+1 (555) 012-3457",
+    "company": "Cascade Ecological",
+    "status": "Active",
+    "createdAt": "2026-09-08T11:15:00Z",
+    "avatar": "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-18",
+    "name": "Liam O'Connor",
+    "email": "liam@dublindigital.ie",
+    "phone": "+1 (555) 123-4568",
+    "company": "Dublin Digital Studios",
+    "status": "Inactive",
+    "createdAt": "2026-07-02T13:00:00Z",
+    "avatar": "https://images.unsplash.com/photo-1463453091185-61582044d556?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-19",
+    "name": "Maya Lin",
+    "email": "maya.lin@quantumarch.com",
+    "phone": "+1 (555) 234-5679",
+    "company": "Quantum Architecture",
+    "status": "Active",
+    "createdAt": "2026-10-05T15:30:00Z",
+    "avatar": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-20",
+    "name": "Benjamin Scott",
+    "email": "bscott@ironcladforge.com",
+    "phone": "+1 (555) 345-6780",
+    "company": "Ironclad Heavy Industries",
+    "status": "Active",
+    "createdAt": "2026-08-11T10:40:00Z",
+    "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-21",
+    "name": "Freja Lindstrom",
+    "email": "freja@nordicclean.se",
+    "phone": "+1 (555) 456-7891",
+    "company": "Nordic Clean Energy",
+    "status": "Active",
+    "createdAt": "2026-09-22T09:15:00Z",
+    "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-22",
+    "name": "Tariq Mansour",
+    "email": "tariq@cairologistics.eg",
+    "phone": "+1 (555) 567-8902",
+    "company": "Cairo Supply Chain",
+    "status": "Inactive",
+    "createdAt": "2026-06-30T14:50:00Z",
+    "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-23",
+    "name": "Camila Santos",
+    "email": "camila@saopaulotrade.br",
+    "phone": "+1 (555) 678-9013",
+    "company": "S\u00e3o Paulo Commodity Trade",
+    "status": "Active",
+    "createdAt": "2026-10-02T13:20:00Z",
+    "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-24",
+    "name": "Alexander Becker",
+    "email": "a.becker@viennafin.at",
+    "phone": "+1 (555) 789-0125",
+    "company": "Vienna Financial Capital",
+    "status": "Active",
+    "createdAt": "2026-09-15T12:00:00Z",
+    "avatar": "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-25",
+    "name": "Ananya Sharma",
+    "email": "ananya@bengalurutech.in",
+    "phone": "+1 (555) 890-1236",
+    "company": "Bengaluru Microchips",
+    "status": "Active",
+    "createdAt": "2026-10-06T08:10:00Z",
+    "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-26",
+    "name": "Dmitri Volkov",
+    "email": "dmitri@nordicshipping.ee",
+    "phone": "+1 (555) 901-2347",
+    "company": "Tallinn Sea Freight",
+    "status": "Inactive",
+    "createdAt": "2026-05-20T16:00:00Z",
+    "avatar": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-27",
+    "name": "Grace Hopperfield",
+    "email": "grace@compvision.ai",
+    "phone": "+1 (555) 012-3458",
+    "company": "Computational Vision Corp",
+    "status": "Active",
+    "createdAt": "2026-09-01T10:00:00Z",
+    "avatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "cust-28",
+    "name": "Oliver Tremblay",
+    "email": "oliver@montrealsoftware.ca",
+    "phone": "+1 (555) 123-4569",
+    "company": "Montreal Interactive",
+    "status": "Active",
+    "createdAt": "2026-10-03T09:40:00Z",
+    "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80"
+  }
+]

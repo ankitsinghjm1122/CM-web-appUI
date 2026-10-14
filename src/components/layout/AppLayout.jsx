@@ -10,9 +10,7 @@ import {
   Menu,
   X,
   ShieldCheck,
-  Plus,
-  Bell,
-  Sparkles
+  Plus
 } from 'lucide-react';
 
 export default function AppLayout({ children, onOpenAddCustomer }) {
@@ -210,17 +208,6 @@ export default function AppLayout({ children, onOpenAddCustomer }) {
             </div>
           </div>
 
-          {/* Quick Action Button */}
-          {onOpenAddCustomer && (
-            <button
-              onClick={onOpenAddCustomer}
-              className="w-full mb-6 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] shadow-md shadow-indigo-600/20 transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add New Customer</span>
-            </button>
-          )}
-
           {/* Navigation Links */}
           <nav className="space-y-1.5">
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 py-1">
@@ -262,33 +249,14 @@ export default function AppLayout({ children, onOpenAddCustomer }) {
         </div>
 
         {/* Sidebar Bottom Controls */}
-        <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-          {/* Dark / Light Mode Switcher */}
-          <button
-            onClick={toggleTheme}
-            id="sidebar-theme-toggle-btn"
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700/80 transition-colors"
-          >
-            <div className="flex items-center gap-2.5">
-              {theme === 'dark' ? (
-                <Sun className="w-4 h-4 text-amber-400" />
-              ) : (
-                <Moon className="w-4 h-4 text-indigo-500" />
-              )}
-              <span>{theme === 'dark' ? 'Light Appearance' : 'Dark Appearance'}</span>
-            </div>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400">
-              {theme}
-            </span>
-          </button>
-
-          {/* User Profile Info & Logout */}
-          <div className="flex items-center justify-between px-2 py-1.5">
+        <div className="pt-3 border-t border-slate-200 dark:border-slate-800">
+          {/* User Profile Info & Actions */}
+          <div className="flex items-center justify-between px-1.5 py-1">
             <button
               type="button"
               onClick={openDirectorProfile}
               id="sidebar-director-profile-btn"
-              className="flex items-center gap-2.5 min-w-0 text-left p-1 -m-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all cursor-pointer group focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex items-center gap-2.5 min-w-0 text-left p-1 -m-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all cursor-pointer group focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 mr-1"
               title="Click to view Operations Director profile"
             >
               <div className="relative shrink-0">
@@ -309,14 +277,31 @@ export default function AppLayout({ children, onOpenAddCustomer }) {
               </div>
             </button>
 
-            <button
-              onClick={logout}
-              id="sidebar-logout-btn"
-              title="Sign Out"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0 ml-1"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Moon / Sun Mode Converter (Compact Icon Only) */}
+              <button
+                onClick={toggleTheme}
+                id="sidebar-theme-toggle-btn"
+                title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                aria-label="Toggle Theme"
+                className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-4 h-4 text-amber-400" />
+                ) : (
+                  <Moon className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                )}
+              </button>
+
+              <button
+                onClick={logout}
+                id="sidebar-logout-btn"
+                title="Sign Out"
+                className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </aside>
@@ -342,7 +327,22 @@ export default function AppLayout({ children, onOpenAddCustomer }) {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {/* Top Bar Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              id="topbar-theme-toggle-btn"
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              aria-label="Toggle Theme"
+              className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors border border-slate-200/80 dark:border-slate-800 cursor-pointer shadow-sm"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+              )}
+            </button>
+
             {onOpenAddCustomer && activeTab !== 'customers' && (
               <button
                 onClick={onOpenAddCustomer}
@@ -352,36 +352,6 @@ export default function AppLayout({ children, onOpenAddCustomer }) {
                 <span>Add Customer</span>
               </button>
             )}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Live System</span>
-            </div>
-
-            {/* Clickable Operations Director Profile Chip */}
-            <button
-              type="button"
-              onClick={openDirectorProfile}
-              id="topbar-director-profile-btn"
-              className="flex items-center gap-2 py-1 pl-1.5 pr-2.5 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200/80 dark:border-slate-700/80 transition-all cursor-pointer group"
-              title="Click to view Operations Director profile"
-            >
-              <div className="relative">
-                <img
-                  src={user?.avatar || profile?.avatar}
-                  alt={user?.name || profile?.name}
-                  className="w-7 h-7 rounded-full object-cover ring-1 ring-indigo-500/40 group-hover:scale-105 transition-transform"
-                />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900 animate-pulse" />
-              </div>
-              <div className="text-left hidden lg:block">
-                <p className="text-[11px] font-bold text-slate-900 dark:text-white leading-tight">
-                  {user?.name || profile?.name}
-                </p>
-                <p className="text-[9px] text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider">
-                  {user?.role || profile?.role || 'Operations Director'}
-                </p>
-              </div>
-            </button>
           </div>
         </div>
 

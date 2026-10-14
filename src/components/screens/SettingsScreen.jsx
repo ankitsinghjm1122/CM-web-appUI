@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { checkBackendHealth } from '../../services/apiClient';
 import {
   User,
   Mail,
@@ -14,7 +15,11 @@ import {
   Palette,
   Bell,
   RefreshCw,
-  Sliders
+  Sliders,
+  Server,
+  Database,
+  Activity,
+  Wifi
 } from 'lucide-react';
 
 export default function SettingsScreen() {
@@ -24,8 +29,14 @@ export default function SettingsScreen() {
     theme,
     toggleTheme,
     resetCustomers,
-    customers
+    customers,
+    isBackendConnected,
+    isSyncing,
+    refreshFromBackend
   } = useApp();
+
+  const [pingStatus, setPingStatus] = useState(null);
+  const [syncStatusMsg, setSyncStatusMsg] = useState('');
 
   const [formData, setFormData] = useState({
     name: profile.name || '',
@@ -48,12 +59,44 @@ export default function SettingsScreen() {
     }, 3000);
   };
 
-  const handleResetData = () => {
-    resetCustomers();
+  const handleResetData = async () => {
+    await resetCustomers();
     setDataResetSuccess(true);
     setTimeout(() => {
       setDataResetSuccess(false);
     }, 3000);
+  };
+
+  const handlePingBackend = async () => {
+    setPingStatus('checking');
+    const t0 = performance.now();
+    try {
+      const ok = await checkBackendHealth();
+      const latency = Math.round(performance.now() - t0);
+      if (ok) {
+        setPingStatus({ ok: true, latency });
+      } else {
+        setPingStatus({ ok: false, error: 'Offline / Bad status' });
+      }
+    } catch (err) {
+      setPingStatus({ ok: false, error: err.message || 'Connection failed' });
+    }
+    setTimeout(() => setPingStatus(null), 6000);
+  };
+
+  const handleForceSync = async () => {
+    setSyncStatusMsg('Syncing with SQLite...');
+    try {
+      const res = await refreshFromBackend();
+      if (res) {
+        setSyncStatusMsg(`Synced ${res.length} customers from SQLite!`);
+      } else {
+        setSyncStatusMsg('Sync failed or offline');
+      }
+    } catch {
+      setSyncStatusMsg('Error syncing with backend');
+    }
+    setTimeout(() => setSyncStatusMsg(''), 4000);
   };
 
   return (
@@ -317,7 +360,116 @@ export default function SettingsScreen() {
         </form>
       </div>
 
-      {/* 3. Data Diagnostics & Reset */}
+      {/* 3. FastAPI & SQLite Infrastructure Diagnostics */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+              <Server className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                  FastAPI &amp; SQLite Infrastructure
+                </h2>
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                    isBackendConnected
+                      ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                      : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isBackendConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                    }`}
+                  />
+                  {isBackendConnected ? 'Connected (Port 8001)' : 'Offline / Local Mode'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Persistent full-stack architecture connecting React via Vite proxy to Python FastAPI and SQLite database.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              id="ping-fastapi-btn"
+              onClick={handlePingBackend}
+              disabled={pingStatus === 'checking'}
+              className="py-2 px-3.5 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800/60 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <Activity className={`w-3.5 h-3.5 ${pingStatus === 'checking' ? 'animate-spin' : ''}`} />
+              <span>
+                {pingStatus === 'checking'
+                  ? 'Pinging...'
+                  : pingStatus?.ok
+                  ? `Active (${pingStatus.latency}ms)`
+                  : 'Ping FastAPI'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              id="sync-sqlite-btn"
+              onClick={handleForceSync}
+              disabled={isSyncing}
+              className="py-2 px-3.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span>Force Sync</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Sync message if present */}
+        {syncStatusMsg && (
+          <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-700 dark:text-indigo-300 flex items-center gap-2 animate-fade-in">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
+            <span>{syncStatusMsg}</span>
+          </div>
+        )}
+
+        {/* Diagnostic Metadata Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+              Backend Service
+            </span>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+              <Server className="w-3.5 h-3.5 text-indigo-500" />
+              <span>FastAPI 1.0.0 (Uvicorn)</span>
+            </div>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">Proxied via /api to 127.0.0.1:8001</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+              Database Engine
+            </span>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+              <Database className="w-3.5 h-3.5 text-emerald-500" />
+              <span>SQLite (crm.db)</span>
+            </div>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">{customers.length} records currently in memory</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+              AI Copilot Endpoint
+            </span>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>/api/copilot/chat</span>
+            </div>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">Stores messages in copilot_chats table</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Data Diagnostics & Reset */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
