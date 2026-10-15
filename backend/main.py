@@ -1,9 +1,25 @@
+import os
+import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.database import init_db, get_active_engine
-from backend.routers.customers import router as customers_router
-from backend.routers.analytics import router as analytics_router
-from backend.routers.copilot import router as copilot_router
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+try:
+    from backend.database import init_db, get_active_engine
+    from backend.routers.customers import router as customers_router
+    from backend.routers.analytics import router as analytics_router
+    from backend.routers.copilot import router as copilot_router
+except ImportError:
+    from database import init_db, get_active_engine
+    from routers.customers import router as customers_router
+    from routers.analytics import router as analytics_router
+    from routers.copilot import router as copilot_router
 
 app = FastAPI(
     title="NexusCRM Enterprise API",

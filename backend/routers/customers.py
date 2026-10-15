@@ -1,15 +1,27 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List, Union, Dict, Any
-from backend.models import CustomerModel, CustomerCreate, CustomerUpdate
-from backend.database import (
-    get_all_customers,
-    get_customer_by_id,
-    add_single_customer,
-    add_bulk_customers,
-    update_customer,
-    delete_customer,
-    reset_to_seed_data
-)
+try:
+    from backend.models import CustomerModel, CustomerCreate, CustomerUpdate
+    from backend.database import (
+        get_all_customers,
+        get_customer_by_id,
+        add_single_customer,
+        add_bulk_customers,
+        update_customer,
+        delete_customer,
+        reset_to_seed_data
+    )
+except ImportError:
+    from models import CustomerModel, CustomerCreate, CustomerUpdate
+    from database import (
+        get_all_customers,
+        get_customer_by_id,
+        add_single_customer,
+        add_bulk_customers,
+        update_customer,
+        delete_customer,
+        reset_to_seed_data
+    )
 
 router = APIRouter(prefix="/api/customers", tags=["customers"])
 

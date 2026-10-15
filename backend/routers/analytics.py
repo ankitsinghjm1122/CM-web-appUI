@@ -1,6 +1,9 @@
 from fastapi import APIRouter
 from typing import Dict, Any
-from backend.database import get_all_customers, calculate_stats
+try:
+    from backend.database import get_all_customers, calculate_stats
+except ImportError:
+    from database import get_all_customers, calculate_stats
 from datetime import datetime
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])

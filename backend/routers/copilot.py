@@ -3,19 +3,34 @@ import urllib.parse
 from datetime import datetime
 from typing import Optional, Any, List, Dict
 from fastapi import APIRouter
-from backend.models import CopilotChatRequest, CopilotChatResponse, ChatMessageModel
-from backend.database import (
-    get_all_customers,
-    add_single_customer,
-    add_bulk_customers,
-    update_customer,
-    delete_customer,
-    reset_to_seed_data,
-    calculate_stats,
-    get_chat_history,
-    save_chat_message,
-    clear_chat_history
-)
+try:
+    from backend.models import CopilotChatRequest, CopilotChatResponse, ChatMessageModel
+    from backend.database import (
+        get_all_customers,
+        add_single_customer,
+        add_bulk_customers,
+        update_customer,
+        delete_customer,
+        reset_to_seed_data,
+        calculate_stats,
+        get_chat_history,
+        save_chat_message,
+        clear_chat_history
+    )
+except ImportError:
+    from models import CopilotChatRequest, CopilotChatResponse, ChatMessageModel
+    from database import (
+        get_all_customers,
+        add_single_customer,
+        add_bulk_customers,
+        update_customer,
+        delete_customer,
+        reset_to_seed_data,
+        calculate_stats,
+        get_chat_history,
+        save_chat_message,
+        clear_chat_history
+    )
 
 router = APIRouter(prefix="/api/copilot", tags=["copilot"])
 
