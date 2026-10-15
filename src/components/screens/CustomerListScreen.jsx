@@ -16,7 +16,8 @@ import {
   CheckCircle2,
   XCircle,
   HelpCircle,
-  Eye
+  Eye,
+  Download
 } from 'lucide-react';
 import ConfirmDialog from '../common/ConfirmDialog';
 
@@ -55,6 +56,36 @@ export default function CustomerListScreen({ onAddCustomer, onEditCustomer }) {
   const handleStatusFilterChange = (status) => {
     setStatusFilter(status);
     setCurrentPage(1);
+  };
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportCSV = () => {
+    setIsExporting(true);
+    const listToExport = filteredCustomers.length > 0 ? filteredCustomers : customers;
+    const headers = ['ID', 'Name', 'Company', 'Email', 'Phone', 'Status', 'CreatedAt'];
+    const rows = listToExport.map((c) => [
+      `"${c.id}"`,
+      `"${(c.name || '').replace(/"/g, '""')}"`,
+      `"${(c.company || '').replace(/"/g, '""')}"`,
+      `"${(c.email || '').replace(/"/g, '""')}"`,
+      `"${(c.phone || '').replace(/"/g, '""')}"`,
+      `"${c.status || 'Active'}"`,
+      `"${c.createdAt || ''}"`
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.setAttribute('href', url);
+    link.setAttribute('download', `NexusCRM_Customers_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    setTimeout(() => setIsExporting(false), 800);
   };
 
   // Pagination calculations
@@ -96,6 +127,16 @@ export default function CustomerListScreen({ onAddCustomer, onEditCustomer }) {
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Reset Seed Data</span>
+          </button>
+          <button
+            id="export-csv-btn"
+            onClick={handleExportCSV}
+            disabled={isExporting}
+            title={`Export ${filteredCustomers.length} customers to CSV`}
+            className="flex items-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/40 border border-emerald-200/60 dark:border-emerald-800/40 transition-all shadow-sm active:scale-[0.98]"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>{isExporting ? 'Exporting...' : 'Export CSV'}</span>
           </button>
           <button
             id="add-customer-top-btn"
