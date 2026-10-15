@@ -45,20 +45,10 @@ if (-not $dumpCmd) {
     $dumpCmd = Get-Command "mariadb-dump" -ErrorAction SilentlyContinue
 }
 if (-not $dumpCmd) {
-    # Check default MariaDB install paths
-    $possiblePaths = @(
-        "C:\Program Files\MariaDB 11.4\bin\mysqldump.exe",
-        "C:\Program Files\MariaDB 11.3\bin\mysqldump.exe",
-        "C:\Program Files\MariaDB 11.2\bin\mysqldump.exe",
-        "C:\Program Files\MariaDB 11.1\bin\mysqldump.exe",
-        "C:\Program Files\MariaDB 11.0\bin\mysqldump.exe",
-        "C:\Program Files\MariaDB 10.11\bin\mysqldump.exe"
-    )
-    foreach ($p in $possiblePaths) {
-        if (Test-Path $p) {
-            $dumpCmd = $p
-            break
-        }
+    # Dynamically search any installed MariaDB version
+    $found = Get-ChildItem -Path "C:\Program Files\MariaDB*" -Filter "*dump.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($found) {
+        $dumpCmd = $found.FullName
     }
 }
 
