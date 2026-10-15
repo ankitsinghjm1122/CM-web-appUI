@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.database import init_db
+from backend.database import init_db, get_active_engine
 from backend.routers.customers import router as customers_router
 from backend.routers.analytics import router as analytics_router
 from backend.routers.copilot import router as copilot_router
@@ -35,7 +35,7 @@ def read_root():
 
 @app.get("/api/health")
 def health_check():
-    return {"status": "healthy", "service": "NexusCRM Backend"}
+    return {"status": "healthy", "service": "NexusCRM Backend", "database": get_active_engine()}
 
 # Mount routers
 app.include_router(customers_router)
