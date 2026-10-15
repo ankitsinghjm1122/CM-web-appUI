@@ -45,8 +45,10 @@ if (-not $dumpCmd) {
     $dumpCmd = Get-Command "mariadb-dump" -ErrorAction SilentlyContinue
 }
 if (-not $dumpCmd) {
-    # Dynamically search any installed MariaDB version
-    $found = Get-ChildItem -Path "C:\Program Files\MariaDB*" -Filter "*dump.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+    $found = Get-ChildItem -Path "C:\Program Files\MariaDB*" -Filter "mariadb-dump.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $found) {
+        $found = Get-ChildItem -Path "C:\Program Files\MariaDB*" -Filter "mysqldump.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+    }
     if ($found) {
         $dumpCmd = $found.FullName
     }
