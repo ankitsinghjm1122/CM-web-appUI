@@ -1,10 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import {
-  Users,
-  UserCheck,
-  UserX,
-  UserPlus,
   TrendingUp,
   ArrowUpRight,
   ArrowRight,
@@ -38,11 +34,7 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
       value: stats.total,
       change: '+18.2%',
       trend: 'up',
-      subtitle: 'vs previous quarter',
-      icon: Users,
-      iconColor: 'text-indigo-600 dark:text-indigo-400',
-      bgColor: 'bg-indigo-50 dark:bg-indigo-950/40',
-      borderColor: 'border-indigo-100 dark:border-indigo-900/50'
+      subtitle: 'vs previous quarter'
     },
     {
       id: 'active-customers',
@@ -50,11 +42,7 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
       value: stats.active,
       change: `${Math.round((stats.active / (stats.total || 1)) * 100)}% ratio`,
       trend: 'up',
-      subtitle: 'Contracted & paying',
-      icon: UserCheck,
-      iconColor: 'text-emerald-600 dark:text-emerald-400',
-      bgColor: 'bg-emerald-50 dark:bg-emerald-950/40',
-      borderColor: 'border-emerald-100 dark:border-emerald-900/50'
+      subtitle: 'Contracted & paying'
     },
     {
       id: 'inactive-customers',
@@ -62,11 +50,7 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
       value: stats.inactive,
       change: `${Math.round((stats.inactive / (stats.total || 1)) * 100)}% ratio`,
       trend: 'neutral',
-      subtitle: 'Requires re-engagement',
-      icon: UserX,
-      iconColor: 'text-amber-600 dark:text-amber-400',
-      bgColor: 'bg-amber-50 dark:bg-amber-950/40',
-      borderColor: 'border-amber-100 dark:border-amber-900/50'
+      subtitle: 'Requires re-engagement'
     },
     {
       id: 'new-this-month',
@@ -74,11 +58,7 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
       value: stats.newThisMonth,
       change: '+4 vs last mo',
       trend: 'up',
-      subtitle: 'Joined in current cycle',
-      icon: UserPlus,
-      iconColor: 'text-violet-600 dark:text-violet-400',
-      bgColor: 'bg-violet-50 dark:bg-violet-950/40',
-      borderColor: 'border-violet-100 dark:border-violet-900/50'
+      subtitle: 'Joined in current cycle'
     }
   ];
 
@@ -104,35 +84,29 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
       {/* 4 Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {statCards.map((card) => {
-          const Icon = card.icon;
           return (
             <div
               key={card.id}
               id={`stat-card-${card.id}`}
-              className={`rounded-2xl p-5 bg-white dark:bg-slate-900 border ${card.borderColor} shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between`}
+              className="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between">
+              <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {card.title}
                 </span>
-                <div className={`w-10 h-10 rounded-xl ${card.bgColor} flex items-center justify-center ${card.iconColor}`}>
-                  <Icon className="w-5 h-5" />
+                <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-2">
+                  {card.value}
                 </div>
               </div>
 
-              <div className="mt-4">
-                <div className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                  {card.value}
-                </div>
-                <div className="mt-2 flex items-center justify-between text-xs">
-                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
-                    <TrendingUp className="w-3.5 h-3.5" />
-                    {card.change}
-                  </span>
-                  <span className="text-slate-400 dark:text-slate-500">
-                    {card.subtitle}
-                  </span>
-                </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  {card.change}
+                </span>
+                <span className="text-slate-400 dark:text-slate-500">
+                  {card.subtitle}
+                </span>
               </div>
             </div>
           );
