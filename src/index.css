@@ -4,12 +4,12 @@
 
 @layer base {
   body {
-    @apply bg-[#FBFBFA] text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased font-sans transition-colors duration-200;
+    @apply bg-[#FBF9F5] text-[#473727] dark:bg-[#160E08] dark:text-[#F5EFE4] antialiased font-sans transition-colors duration-200;
     min-height: 100vh;
   }
 }
 
-/* Custom scrollbars */
+/* Custom scrollbars with warm tan tone */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -20,12 +20,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.4);
+  background: rgba(199, 163, 124, 0.4);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.7);
+  background: rgba(199, 163, 124, 0.7);
 }
 
 @keyframes spinSlow {
@@ -54,4 +54,3 @@
 .animate-pulse-ring {
   animation: pulseRing 3s ease-in-out infinite;
 }
-
