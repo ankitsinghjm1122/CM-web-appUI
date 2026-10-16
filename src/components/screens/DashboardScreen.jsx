@@ -146,27 +146,27 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
               >
                 <defs>
                   <linearGradient id="customerGrowth" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#B38A65" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#B38A65" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
-                  stroke={theme === 'dark' ? '#334155' : '#f1f5f9'}
+                  stroke={theme === 'dark' ? '#382E2E' : '#EDE6DC'}
                 />
                 <XAxis
                   dataKey="month"
                   tickLine={false}
                   axisLine={false}
-                  stroke={theme === 'dark' ? '#94a3b8' : '#64748b'}
+                  stroke={theme === 'dark' ? '#A8988E' : '#8C7A70'}
                   fontSize={12}
                 />
                 <YAxis
                   allowDecimals={false}
                   tickLine={false}
                   axisLine={false}
-                  stroke={theme === 'dark' ? '#94a3b8' : '#64748b'}
+                  stroke={theme === 'dark' ? '#A8988E' : '#8C7A70'}
                   fontSize={12}
                 />
                 <Tooltip
@@ -187,7 +187,7 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
                 <Area
                   type="monotone"
                   dataKey="customers"
-                  stroke="#4f46e5"
+                  stroke="#B38A65"
                   strokeWidth={3}
                   fillOpacity={1}
                   fill="url(#customerGrowth)"
@@ -210,8 +210,8 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
             <div className="mt-6 space-y-4">
               <div>
                 <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="font-semibold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-indigo-600" />
                     Active Accounts
                   </span>
                   <span className="font-bold text-slate-900 dark:text-white">
@@ -220,7 +220,7 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
                 </div>
                 <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                    className="h-full bg-indigo-600 rounded-full transition-all duration-500"
                     style={{
                       width: `${(stats.active / (stats.total || 1)) * 100}%`
                     }}
@@ -230,8 +230,8 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
 
               <div>
                 <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span className="font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-slate-400" />
                     Inactive / Paused
                   </span>
                   <span className="font-bold text-slate-900 dark:text-white">
@@ -240,7 +240,7 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
                 </div>
                 <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-amber-500 rounded-full transition-all duration-500"
+                    className="h-full bg-slate-300 dark:bg-slate-600 rounded-full transition-all duration-500"
                     style={{
                       width: `${(stats.inactive / (stats.total || 1)) * 100}%`
                     }}
@@ -335,8 +335,8 @@ export default function DashboardScreen({ onNavigateToCustomers, onOpenAddCustom
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                         cust.status === 'Active'
-                          ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                          : 'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                          ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
                       }`}
                     >
                       {cust.status}
