@@ -125,16 +125,20 @@ export default function CopilotDrawer() {
 
   return (
     <>
-      {/* Floating Action Trigger Button (Round) */}
+      {/* Floating Action Trigger Button */}
       {!isOpen && (
         <button
           id="open-copilot-btn"
           onClick={() => setIsOpen(true)}
-          aria-label="Open Nexus AI Copilot"
-          title="Open Nexus AI Copilot"
-          className="fixed bottom-5 right-5 z-40 p-1 rounded-full bg-slate-900/90 dark:bg-slate-900/95 border border-indigo-500/40 shadow-2xl shadow-indigo-950/60 hover:shadow-indigo-500/50 hover:scale-110 active:scale-95 transition-all group cursor-pointer focus:outline-none focus:ring-4 focus:ring-indigo-500/30"
+          aria-label="Open Nexus AI Assistant"
+          title="Open Nexus AI Assistant"
+          className="fixed bottom-5 right-5 z-40 p-2 pl-3 pr-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:border-indigo-400 hover:scale-105 active:scale-95 transition-all group cursor-pointer focus:outline-none focus:ring-4 focus:ring-indigo-500/20 flex items-center gap-3"
         >
-          <CopilotCircularLogo size={44} showStatus={true} />
+          <CopilotCircularLogo size={36} showStatus={true} />
+          <div className="text-left hidden sm:block">
+            <p className="text-xs font-bold text-slate-800 dark:text-white leading-tight">AI Assistant</p>
+            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">Ask or query CRM</p>
+          </div>
         </button>
       )}
 
@@ -142,30 +146,31 @@ export default function CopilotDrawer() {
       {isOpen && (
         <div
           id="copilot-drawer-panel"
-          className="fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-50 w-[88vw] sm:w-[310px] h-[410px] max-h-[68vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl shadow-indigo-950/20 dark:shadow-black/60 flex flex-col overflow-hidden backdrop-blur-xl animate-scale-up"
+          className="fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-50 w-[88vw] sm:w-[330px] h-[440px] max-h-[72vh] bg-[#FAF7F2] dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl shadow-slate-900/15 flex flex-col overflow-hidden animate-scale-up"
         >
           {/* Header */}
-          <div className="px-3 py-2 bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-1.5">
-              <CopilotCircularLogo size={24} showStatus={false} />
+          <div className="px-3.5 py-2.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2.5">
+              <CopilotCircularLogo size={28} showStatus={false} />
               <div>
-                <h3 className="text-xs font-semibold tracking-tight">Nexus AI Copilot</h3>
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white tracking-tight">Nexus AI Assistant</h3>
+                <span className="block text-[10px] font-medium text-indigo-700 dark:text-indigo-400">Executive CRM Intelligence</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-1">
               <button
                 onClick={handleClearChat}
                 title="Clear Chat History"
-                className="p-1 rounded text-indigo-200 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
               <button
                 id="close-copilot-btn"
                 onClick={() => setIsOpen(false)}
-                title="Close Copilot"
-                className="p-1 rounded text-indigo-200 hover:text-white hover:bg-white/10 transition-colors"
+                title="Close Assistant"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -189,10 +194,10 @@ export default function CopilotDrawer() {
 
                   <div className={`max-w-[85%] space-y-1 ${isUser ? 'items-end' : 'items-start'}`}>
                     <div
-                      className={`p-2 rounded-xl leading-relaxed ${
+                      className={`p-2.5 rounded-2xl leading-relaxed ${
                         isUser
-                          ? 'bg-indigo-600 text-white rounded-tr-none'
-                          : 'bg-slate-100 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 rounded-tl-none border border-slate-200/60 dark:border-slate-700/60'
+                          ? 'bg-indigo-600 text-white rounded-tr-sm shadow-sm'
+                          : 'bg-white dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 rounded-tl-sm border border-slate-200/80 dark:border-slate-700/60 shadow-sm'
                       }`}
                     >
                       {/* Point-by-point clean formatting (zero asterisks) */}
@@ -208,7 +213,7 @@ export default function CopilotDrawer() {
                             const pointContent = rest.join('. ');
                             return (
                               <div key={idx} className="flex items-start gap-2 py-0.5">
-                                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-500/15 dark:bg-indigo-400/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold shrink-0 mt-0.5">
+                                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold shrink-0 mt-0.5">
                                   {pointNum}
                                 </span>
                                 <span className="flex-1 text-slate-800 dark:text-slate-200 leading-snug">
@@ -253,7 +258,7 @@ export default function CopilotDrawer() {
                             {msg.data.company}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className={`inline-block w-1.5 h-1.5 rounded-full ${msg.data.status === 'Active' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                            <span className={`inline-block w-1.5 h-1.5 rounded-full ${msg.data.status === 'Active' ? 'bg-indigo-600' : 'bg-slate-400'}`} />
                             <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{msg.data.status} Account</span>
                           </div>
                         </div>
@@ -263,8 +268,8 @@ export default function CopilotDrawer() {
 
                     {/* Tool Execution Badge */}
                     {msg.badge && (
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[10px] font-semibold">
-                        <Zap className="w-3 h-3 text-emerald-500 fill-emerald-500" />
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800 text-[10px] font-semibold">
+                        <Zap className="w-3 h-3 text-indigo-600 fill-indigo-600" />
                         <span>Action: {msg.badge}</span>
                       </div>
                     )}
@@ -300,7 +305,7 @@ export default function CopilotDrawer() {
           </div>
 
           {/* Input Box Footer */}
-          <div className="p-2 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shrink-0">
+          <div className="p-2.5 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shrink-0">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -314,13 +319,13 @@ export default function CopilotDrawer() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask or command (e.g. 'Marcus phone')..."
-                className="w-full pl-2.5 pr-8 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="w-full pl-3 pr-9 py-2 bg-[#FAF7F2] dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
               />
               <button
                 type="submit"
                 id="copilot-send-btn"
                 disabled={!input.trim() || isThinking}
-                className="absolute right-1 p-1 rounded-md bg-indigo-600 text-white disabled:opacity-40 hover:bg-indigo-500 transition-colors"
+                className="absolute right-1.5 p-1.5 rounded-lg bg-indigo-600 text-white disabled:opacity-40 hover:bg-indigo-500 transition-colors shadow-sm shadow-indigo-600/30"
               >
                 <Send className="w-3 h-3" />
               </button>
