@@ -15,13 +15,17 @@ export function AppProvider({ children }) {
   // Backend connection & sync state
   const [isBackendConnected, setIsBackendConnected] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  // 1. Theme State (persisted in localStorage)
+  // 1. Theme State (persisted in localStorage, defaults to light for Oat Milk & Soft Latte)
   const [theme, setTheme] = useState(() => {
+    const version = localStorage.getItem('crm_palette_version');
+    if (version !== 'oat_milk_v1') {
+      localStorage.setItem('crm_palette_version', 'oat_milk_v1');
+      localStorage.setItem('crm_theme', 'light');
+      return 'light';
+    }
     const saved = localStorage.getItem('crm_theme');
-    if (saved) return saved;
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
+    if (saved === 'dark' || saved === 'light') return saved;
+    return 'light';
   });
 
   useEffect(() => {

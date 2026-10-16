@@ -11,61 +11,61 @@ export default {
         sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
-        offwhite: '#F6EFE3', // softest warm beige
-        // Warm Rich Browns / Cognac / Caramel
+        offwhite: '#FAF7F2', // Option 1: Oat Milk background
+        // Option 1: Soft Latte Brown Accents & Buttons
         indigo: {
-          50: '#FAF6ED',   // warm cream tint
-          100: '#F6EFE3',  // softest warm beige
-          200: '#EBDCC8',  // light almond
-          300: '#DEC4A6',  // warm sand / biscuit
-          400: '#C29C74',  // warm golden tan
-          500: '#A67C52',  // rich caramel
-          600: '#845A32',  // primary rich warm brown / cognac
-          700: '#6B4522',  // deep warm mocha
-          800: '#523317',  // dark espresso
-          900: '#3A220D',  // dark roast
-          950: '#221206',  // deep bean
+          50: '#FAF4EC',   // light latte tint
+          100: '#F4ECE0',  // latte badge & pill background
+          200: '#E8D8C3',  // latte subtle border
+          300: '#D5BDA2',  // soft biscuit
+          400: '#C49F7D',  // warm golden tan
+          500: '#BD926D',  // latte warm mid
+          600: '#B38A65',  // PRIMARY: Soft Latte Brown (Accent & Buttons)
+          700: '#9C734E',  // latte button hover
+          800: '#845E3B',  // deep latte button active
+          900: '#6B4A2D',  // warm mocha roast
+          950: '#4A321D',  // deep espresso roast
         },
-        // Softest Warm Beige & Muted Warm Taupe Text
+        // Option 1: Oat Milk Surfaces, Soft Warm Cream Borders & Muted Warm Taupe / Espresso Text
         slate: {
-          50: '#FAF6ED',   // clean light warm cream
-          100: '#F6EFE3',  // softest warm beige surface & cards
-          200: '#EBDCC8',  // softest warm beige border / divider
-          300: '#DEC4A6',  // tan border / neutral line
-          400: '#A4907C',  // muted warm taupe text
-          500: '#8B7864',  // soft warm taupe text
-          600: '#705F4D',  // muted warm taupe body text
-          700: '#5C4D3E',  // deep muted warm taupe headings
-          800: '#2A2016',  // dark mode warm surface
-          900: '#1E160E',  // dark mode card
-          950: '#140E08',  // dark mode deep espresso
+          50: '#FAF7F2',   // Oat Milk page background
+          100: '#F5EFE6',  // soft cream card/table-header background
+          200: '#EDE6DC',  // soft cream border / divider
+          300: '#DCD2C4',  // neutral border
+          400: '#A8988E',  // subtle placeholder & icons
+          500: '#8C7A70',  // MUTED: Warm taupe text
+          600: '#6F5F58',  // secondary body text
+          700: '#5A4C48',  // medium heading text
+          800: '#4A3E3D',  // PRIMARY: Soft warm dark espresso text
+          900: '#382E2E',  // deep espresso headings & dark cards
+          950: '#251E1E',  // dark mode background
         },
-        // Warm Terracotta / Amber Bronze
+        // Warm Terracotta / Amber Bronze harmony
         violet: {
-          50: '#FDF7F2',
-          100: '#F9ECE2',
-          200: '#F2D5C2',
-          300: '#E7B799',
-          400: '#D6926B',
-          500: '#BF7245',
-          600: '#A5572E',
-          700: '#86411F',
-          800: '#6A3116',
-          900: '#4D220E',
-          950: '#280F05',
+          50: '#FAF5F0',
+          100: '#F5EBE1',
+          200: '#EBD6C3',
+          300: '#DEBA9F',
+          400: '#CA9875',
+          500: '#B87B53',
+          600: '#A3663E',
+          700: '#8A512D',
+          800: '#6F3F21',
+          900: '#542E16',
+          950: '#33190A',
         },
         brand: {
-          50: '#FAF6ED',
-          100: '#F6EFE3',
-          200: '#EBDCC8',
-          300: '#DEC4A6',
-          400: '#C29C74',
-          500: '#A67C52',
-          600: '#845A32',
-          700: '#6B4522',
-          800: '#523317',
-          900: '#3A220D',
-          950: '#221206',
+          50: '#FAF4EC',
+          100: '#F4ECE0',
+          200: '#E8D8C3',
+          300: '#D5BDA2',
+          400: '#C49F7D',
+          500: '#BD926D',
+          600: '#B38A65',
+          700: '#9C734E',
+          800: '#845E3B',
+          900: '#6B4A2D',
+          950: '#4A321D',
         }
       }
     },

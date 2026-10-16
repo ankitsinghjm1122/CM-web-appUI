@@ -4,12 +4,12 @@
 
 @layer base {
   body {
-    @apply bg-[#F6EFE3] text-[#5C4D3E] dark:bg-[#140E08] dark:text-[#EBDCC8] antialiased font-sans transition-colors duration-200;
+    @apply bg-[#FAF7F2] text-[#4A3E3D] dark:bg-[#1C1714] dark:text-[#F4ECE0] antialiased font-sans transition-colors duration-200;
     min-height: 100vh;
   }
 }
 
-/* Custom scrollbars with muted warm taupe tone */
+/* Custom scrollbars with soft latte tone */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -20,12 +20,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(164, 144, 124, 0.4);
+  background: rgba(179, 138, 101, 0.35);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(164, 144, 124, 0.7);
+  background: rgba(179, 138, 101, 0.65);
 }
 
 @keyframes spinSlow {
