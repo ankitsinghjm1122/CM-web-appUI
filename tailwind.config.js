@@ -11,36 +11,36 @@ export default {
         sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
-        offwhite: '#FBF8F3',
-        // Warm Rich Browns / Cognac / Caramel (replaces old blue/indigo)
+        offwhite: '#F6EFE3', // softest warm beige
+        // Warm Rich Browns / Cognac / Caramel
         indigo: {
-          50: '#FDFBF7',   // warm cream tint
+          50: '#FAF6ED',   // warm cream tint
           100: '#F6EFE3',  // softest warm beige
           200: '#EBDCC8',  // light almond
           300: '#DEC4A6',  // warm sand / biscuit
-          400: '#C7A37C',  // warm golden tan
-          500: '#AD8253',  // rich caramel
-          600: '#8E5E2F',  // primary rich warm brown / cognac
-          700: '#73481F',  // deep warm mocha
-          800: '#583413',  // dark espresso
-          900: '#3D220A',  // dark chocolate roast
-          950: '#231204',  // deep roast bean
+          400: '#C29C74',  // warm golden tan
+          500: '#A67C52',  // rich caramel
+          600: '#845A32',  // primary rich warm brown / cognac
+          700: '#6B4522',  // deep warm mocha
+          800: '#523317',  // dark espresso
+          900: '#3A220D',  // dark roast
+          950: '#221206',  // deep bean
         },
-        // Warm Beige & Neutral Sand (replaces old cold bluish Slate)
+        // Softest Warm Beige & Muted Warm Taupe Text
         slate: {
-          50: '#FBF9F5',   // clean luminous light warm beige background
-          100: '#F5EFE4',  // soft light beige surface / card background
-          200: '#E8DED1',  // warm beige border / divider
-          300: '#D5C4B1',  // tan border / neutral line
+          50: '#FAF6ED',   // clean light warm cream
+          100: '#F6EFE3',  // softest warm beige surface & cards
+          200: '#EBDCC8',  // softest warm beige border / divider
+          300: '#DEC4A6',  // tan border / neutral line
           400: '#A4907C',  // muted warm taupe text
-          500: '#7F6B56',  // medium warm taupe
-          600: '#5F4D3B',  // primary body text (dark warm taupe)
-          700: '#473727',  // dark warm espresso headings
-          800: '#2F2317',  // dark mode warm surface
-          900: '#22180E',  // dark mode card
-          950: '#160E08',  // dark mode deep espresso
+          500: '#8B7864',  // soft warm taupe text
+          600: '#705F4D',  // muted warm taupe body text
+          700: '#5C4D3E',  // deep muted warm taupe headings
+          800: '#2A2016',  // dark mode warm surface
+          900: '#1E160E',  // dark mode card
+          950: '#140E08',  // dark mode deep espresso
         },
-        // Warm Terracotta / Amber Bronze (replaces cold Violet)
+        // Warm Terracotta / Amber Bronze
         violet: {
           50: '#FDF7F2',
           100: '#F9ECE2',
@@ -55,17 +55,17 @@ export default {
           950: '#280F05',
         },
         brand: {
-          50: '#FDFBF7',
+          50: '#FAF6ED',
           100: '#F6EFE3',
           200: '#EBDCC8',
           300: '#DEC4A6',
-          400: '#C7A37C',
-          500: '#AD8253',
-          600: '#8E5E2F',
-          700: '#73481F',
-          800: '#583413',
-          900: '#3D220A',
-          950: '#231204',
+          400: '#C29C74',
+          500: '#A67C52',
+          600: '#845A32',
+          700: '#6B4522',
+          800: '#523317',
+          900: '#3A220D',
+          950: '#221206',
         }
       }
     },
